@@ -4,5 +4,6 @@ public enum MessageType {
     LOGIN,
     LOGIN_SUCCESS,
     LOGOUT,
-    LOGOUT_SUCCESS
+    LOGOUT_SUCCESS,
+    ERROR
 }
