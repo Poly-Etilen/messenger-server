@@ -6,5 +6,11 @@ public enum MessageType {
     LOGOUT,
     LOGOUT_SUCCESS,
     CREATE_ROOM,
+    CREATE_ROOM_SUCCESS,
+    ROOM_LIST,
+    ROOM_LIST_RESPONSE,
+    JOIN_ROOM,
+    JOIN_ROOM_SUCCESS,
+    JOIN_ROOM_FAIL,
     ERROR
 }
