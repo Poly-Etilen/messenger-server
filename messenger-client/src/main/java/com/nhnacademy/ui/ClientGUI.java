@@ -11,6 +11,9 @@ import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
 
+import java.util.List;
+import java.util.Map;
+
 public class ClientGUI extends Application implements View {
 
     private Stage primaryStage;
@@ -120,5 +123,9 @@ public class ClientGUI extends Application implements View {
 
         Scene scene = new Scene(layout, 800, 1000);
         primaryStage.setScene(scene);
+    }
+
+    public void updateRoomList(List<Map<String, Object>> rooms) {
+        //구현 필요
     }
 }

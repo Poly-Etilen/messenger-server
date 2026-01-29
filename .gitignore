@@ -1,1 +1,4 @@
 /.idea/
+messenger-client/target/*
+messenger-common/target/*
+messenger-server/target/*
