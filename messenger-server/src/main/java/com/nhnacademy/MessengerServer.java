@@ -15,7 +15,7 @@ public class MessengerServer {
 
     public void start() {
         try (ServerSocket socket = new ServerSocket(port)){
-            log.info("매신저 서버가 포트 {}에서 시작되었습니다.", port);
+            log.info("메신저 서버가 포트 {}에서 시작되었습니다.", port);
 
             while (!Thread.currentThread().isInterrupted()) {
                 try {
