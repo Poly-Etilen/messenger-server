@@ -1,6 +1,8 @@
 package com.nhnacademy.command.impl;
 
+import com.nhnacademy.annotation.LoginRequired;
 import com.nhnacademy.command.Command;
+import com.nhnacademy.context.SessionHolder;
 import com.nhnacademy.domain.Header.MessageHeader;
 import com.nhnacademy.domain.Header.MessageType;
 import com.nhnacademy.domain.Message;
@@ -15,10 +17,13 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 
 @Slf4j
+@LoginRequired
 public class SendMessageCommand implements Command {
 
     @Override
-    public void execute(ClientSession session, Message request) {
+    public void execute(Message request) {
+        ClientSession session = SessionHolder.get();
+
         String roomId = (String) request.getPayload().getData().get("roomId");
         String messageContent = (String) request.getPayload().getData().get("message");
 

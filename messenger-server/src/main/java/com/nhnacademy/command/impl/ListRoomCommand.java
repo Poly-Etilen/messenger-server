@@ -1,6 +1,8 @@
 package com.nhnacademy.command.impl;
 
+import com.nhnacademy.annotation.LoginRequired;
 import com.nhnacademy.command.Command;
+import com.nhnacademy.context.SessionHolder;
 import com.nhnacademy.domain.Header.MessageHeader;
 import com.nhnacademy.domain.Header.MessageType;
 import com.nhnacademy.domain.Message;
@@ -19,9 +21,11 @@ import java.util.List;
 import java.util.Map;
 
 @Slf4j
+@LoginRequired
 public class ListRoomCommand implements Command {
     @Override
-    public void execute(ClientSession session, Message request) {
+    public void execute(Message request) {
+        ClientSession session = SessionHolder.get();
         List<ChatRoom> rooms = ChatRoomManager.getInstance().getAllRooms();
 
         List<Map<String, Object>> roomInfoList = new ArrayList<>();

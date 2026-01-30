@@ -1,6 +1,8 @@
 package com.nhnacademy.command.impl;
 
+import com.nhnacademy.annotation.LoginRequired;
 import com.nhnacademy.command.Command;
+import com.nhnacademy.context.SessionHolder;
 import com.nhnacademy.domain.Header.MessageHeader;
 import com.nhnacademy.domain.Header.MessageType;
 import com.nhnacademy.domain.Message;
@@ -16,9 +18,11 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 
 @Slf4j
+@LoginRequired
 public class LogoutCommand implements Command {
     @Override
-    public void execute(ClientSession session, Message request) {
+    public void execute(Message request) {
+        ClientSession session = SessionHolder.get();
         String userId = session.getUserId();
 
         String currentRoomId = session.getCurrentRoomId();
