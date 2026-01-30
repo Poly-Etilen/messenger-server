@@ -45,6 +45,7 @@ public class ClientEventHandler {
         view.showEnterRoom();
     }
 
+
     public void onLogoutClicked() {
         view.mainView();
     }
@@ -92,6 +93,7 @@ public class ClientEventHandler {
         switch (type) {
             case LOGIN_SUCCESS:
                 log.info("로그인 성공");
+                view.setCurrentUser(myUserId);
                 view.showRoomList();
                 sendRoomListRequest();
                 break;
@@ -124,7 +126,6 @@ public class ClientEventHandler {
 
 
     }
-
     private void sendMessage(Message message){
         try{
             MessageCodec.sendMessage(socket.getOutputStream(),message);
