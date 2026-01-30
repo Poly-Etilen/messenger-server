@@ -1,13 +1,9 @@
 package com.nhnacademy.session;
 
 import com.nhnacademy.command.Command;
-import com.nhnacademy.command.impl.CreateRoomCommand;
-import com.nhnacademy.command.impl.LoginCommand;
+import com.nhnacademy.command.impl.*;
 import com.nhnacademy.domain.Header.MessageType;
 import com.nhnacademy.domain.Message;
-import com.nhnacademy.manager.JoinRoomCommand;
-import com.nhnacademy.manager.ListRoomCommand;
-import com.nhnacademy.manager.LogoutCommand;
 import com.nhnacademy.manager.SessionManager;
 import com.nhnacademy.util.MessageCodec;
 import lombok.Getter;
@@ -44,6 +40,7 @@ public class ClientSession implements Runnable{
         commandMap.put(MessageType.ROOM_LIST, new ListRoomCommand());
         commandMap.put(MessageType.JOIN_ROOM, new JoinRoomCommand());
         commandMap.put(MessageType.LOGOUT, new LogoutCommand());
+        commandMap.put(MessageType.ROOM_USER_LIST, new RoomUserListCommand());
     }
 
     public OutputStream getOutputStream() throws IOException {

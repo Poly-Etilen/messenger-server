@@ -44,6 +44,8 @@ public class ClientEventHandler {
         view.showEnterRoom();
     }
 
+    private void sendMessage(Message message) {}
+
     public void onLogoutClicked() {
         view.mainView();
     }
@@ -106,5 +108,5 @@ public class ClientEventHandler {
 
     private void sendRoomListRequest() {}
 
-
+    
 }
