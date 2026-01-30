@@ -13,19 +13,21 @@ import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import lombok.Setter;
 
 import javax.lang.model.util.Elements.Origin;
+import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 public class ClientGUI extends Application implements View {
 
+    private String currentUser;
     private Stage primaryStage;
     private ClientEventHandler eventHandler;
     ListView<String> roomListView;
     ObservableList<String> roomItems;
-
 
     @Override
     public void start(Stage primaryStage) {
@@ -34,6 +36,10 @@ public class ClientGUI extends Application implements View {
         primaryStage.setTitle("NHN Academy Chatting Program");
         mainView();
         primaryStage.show();
+    }
+
+    public void setCurrentUser(String currentUser) {
+        this.currentUser = currentUser;
     }
 
     // 로그인 화면
@@ -72,7 +78,7 @@ public class ClientGUI extends Application implements View {
         // 상단 : 유저 정보 및 방 생성 버튼
         HBox topBar = new HBox(10);
         topBar.setPadding(new Insets(10, 0, 10, 0));
-        Label userLabel = new Label("접속자: test1234");
+        Label userLabel = new Label("접속자: " + currentUser);
         Button createRoomBtn = new Button("방 만들기");
         topBar.getChildren().addAll(userLabel, createRoomBtn);
 
@@ -91,7 +97,10 @@ public class ClientGUI extends Application implements View {
 
         // 하단: 나가기 버튼(로그인 화면으로 복귀)
         Button logoutBtn = new Button("로그아웃");
-        logoutBtn.setOnAction(e -> logout());
+        logoutBtn.setOnAction(e -> {
+            logout();
+            eventHandler.onLogoutClicked();
+        });
         layout.setBottom(logoutBtn);
         BorderPane.setMargin(logoutBtn, new Insets(10, 0, 0, 0));
 
@@ -107,7 +116,7 @@ public class ClientGUI extends Application implements View {
         BorderPane topBar = new BorderPane();
         topBar.setPadding(new Insets(10, 10, 10, 10));
 
-        Label userLabel = new Label("접속자: test1234");
+        Label userLabel = new Label("접속자: " +  currentUser);
 
         Button exitButton = new Button("나가기");
 
