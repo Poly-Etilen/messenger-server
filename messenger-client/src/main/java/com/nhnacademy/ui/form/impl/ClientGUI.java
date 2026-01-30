@@ -51,6 +51,7 @@ public class ClientGUI extends Application implements View {
         idField.setPromptText("아이디");
         idField.setMaxWidth(200);
 
+
         PasswordField passwordField = new PasswordField();
         passwordField.setPromptText("패스워드");
         passwordField.setMaxWidth(200);
@@ -58,7 +59,8 @@ public class ClientGUI extends Application implements View {
         Button loginButton = new Button("로그인");
         loginButton.setMinWidth(200);
 
-
+        idField.setOnAction(e -> eventHandler.onLoginClicked(idField.getText(),passwordField.getText()));
+        passwordField.setOnAction(e -> eventHandler.onLoginClicked(idField.getText(),passwordField.getText()));
         loginButton.setOnAction(e -> eventHandler.onLoginClicked(idField.getText(), passwordField.getText()));
 
         layout.getChildren().addAll(label, idField, passwordField, loginButton);
