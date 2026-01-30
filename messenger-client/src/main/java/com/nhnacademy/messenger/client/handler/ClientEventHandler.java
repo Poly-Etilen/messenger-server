@@ -46,8 +46,6 @@ public class ClientEventHandler {
         view.showEnterRoom();
     }
 
-    private void sendMessage(Message message) {}
-
     public void onLogoutClicked() {
         view.mainView();
     }
@@ -118,7 +116,7 @@ public class ClientEventHandler {
 
     }
 
-    private  void sendMessage(Message message){
+    private void sendMessage(Message message){
         try{
             MessageCodec.sendMessage(socket.getOutputStream(),message);
             log.debug("메세지 전송 {}",message.getHeader().getMessageType());
