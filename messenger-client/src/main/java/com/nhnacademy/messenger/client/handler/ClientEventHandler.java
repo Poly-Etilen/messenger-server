@@ -47,7 +47,9 @@ public class ClientEventHandler {
 
 
     public void onLogoutClicked() {
-        view.mainView();
+        MessageHeader header = new MessageHeader(MessageType.LOGOUT,LocalDateTime.now());
+        MessagePayload payload = new MessagePayload();
+        sendMessage(new Message("0",header,payload));
     }
 
     public void onExitRoomClicked() {
@@ -112,12 +114,11 @@ public class ClientEventHandler {
                 // 구현 필요
             case LOGOUT:
             case LOGOUT_SUCCESS:
-                view.mainView();
+                view.logout();
                 break;
         }
 
     }
-
     private void sendRoomListRequest() {
         MessageHeader header = new MessageHeader(MessageType.ROOM_LIST,LocalDateTime.now());
         MessagePayload payload = new MessagePayload();
