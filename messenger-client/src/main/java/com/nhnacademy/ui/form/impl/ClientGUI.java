@@ -23,6 +23,7 @@ import java.util.Map;
 
 public class ClientGUI extends Application implements View {
 
+    @Setter
     private String currentUser;
     private Stage primaryStage;
     private ClientEventHandler eventHandler;
@@ -36,10 +37,6 @@ public class ClientGUI extends Application implements View {
         primaryStage.setTitle("NHN Academy Chatting Program");
         mainView();
         primaryStage.show();
-    }
-
-    public void setCurrentUser(String currentUser) {
-        this.currentUser = currentUser;
     }
 
     // 로그인 화면
