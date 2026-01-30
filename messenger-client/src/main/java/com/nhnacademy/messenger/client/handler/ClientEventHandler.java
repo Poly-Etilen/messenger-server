@@ -4,18 +4,19 @@ import com.nhnacademy.domain.Header.MessageHeader;
 import com.nhnacademy.domain.Header.MessageType;
 import com.nhnacademy.domain.Message;
 import com.nhnacademy.domain.payload.MessagePayload;
-import com.nhnacademy.ui.ClientGUI;
+import com.nhnacademy.ui.form.impl.ClientGUI;
 import com.nhnacademy.util.MessageCodec;
 import javafx.application.Platform;
 import javafx.scene.control.ListView;
 import lombok.extern.slf4j.Slf4j;
-
 import java.io.IOException;
 import java.net.Socket;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static com.nhnacademy.util.MessageCodec.sendMessage;
 
 @Slf4j
 public class ClientEventHandler {
@@ -37,6 +38,7 @@ public class ClientEventHandler {
         payload.getData().put("password", password);
 
         sendMessage(new Message("0", header, payload));
+        view.showRoomList();
     }
 
     public void onRoomClicked(ListView<String> roomListView) {
@@ -54,6 +56,7 @@ public class ClientEventHandler {
         view.showRoomList();
 
     }
+
 
     private void connectToServer() {
         try {
@@ -101,12 +104,28 @@ public class ClientEventHandler {
             case JOIN_ROOM_SUCCESS:
                 // 구현 필요
             case LOGOUT_SUCCESS:
-                // 구현 필요
+                view.mainView();
         }
 
     }
 
-    private void sendRoomListRequest() {}
+    private void sendRoomListRequest() {
+        MessageHeader header = new MessageHeader(MessageType.ROOM_LIST,LocalDateTime.now());
+        MessagePayload payload = new MessagePayload();
+        sendMessage(new Message("0",header,payload));
+
+
+
+    }
+
+    private  void sendMessage(Message message){
+        try{
+            MessageCodec.sendMessage(socket.getOutputStream(),message);
+            log.debug("메세지 전송 {}",message.getHeader().getMessageType());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     
 }
