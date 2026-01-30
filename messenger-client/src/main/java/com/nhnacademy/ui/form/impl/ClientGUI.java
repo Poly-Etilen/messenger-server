@@ -16,7 +16,6 @@ import javafx.stage.Stage;
 import lombok.Setter;
 
 import javax.lang.model.util.Elements.Origin;
-import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -149,6 +148,14 @@ public class ClientGUI extends Application implements View {
         TextField textField = new TextField();
         textField.setPromptText("내용을 입력해 주세요");
         layout.setBottom(textField);
+        textField.setOnAction(e ->{
+            String message = textField.getText();
+            textField.clear();
+            chatLog.appendText(message + "\n");
+
+        });
+
+
 
         Scene scene = new Scene(layout, 800, 1000);
         primaryStage.setScene(scene);
