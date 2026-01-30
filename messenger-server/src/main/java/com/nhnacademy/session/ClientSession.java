@@ -42,6 +42,7 @@ public class ClientSession implements Runnable{
         commandMap.put(MessageType.LOGOUT, new LogoutCommand());
         commandMap.put(MessageType.ROOM_USER_LIST, new RoomUserListCommand());
         commandMap.put(MessageType.CHAT_MESSAGE, new SendMessageCommand());
+        commandMap.put(MessageType.WHISPER_MESSAGE, new WhisperMessageCommand());
     }
 
     public OutputStream getOutputStream() throws IOException {
