@@ -38,7 +38,6 @@ public class ClientEventHandler {
         payload.getData().put("password", password);
 
         sendMessage(new Message("0", header, payload));
-        view.showRoomList();
     }
 
     public void onRoomClicked(ListView<String> roomListView) {
@@ -92,17 +91,27 @@ public class ClientEventHandler {
         Map<String, Object> data = message.getPayload().getData();
         switch (type) {
             case LOGIN_SUCCESS:
+                log.info("로그인 성공");
+                view.showRoomList();
                 sendRoomListRequest();
+                break;
+            case LOGIN_FAIL:
+                String reason = (String) data.get("reason");
+                if (reason == null) {
+                    reason = "로그인 실패";
+                }
+                view.showError("로그인 실패", reason);
                 break;
             case ROOM_LIST_RESPONSE:
                 List<Map<String, Object>> rooms = (List<Map<String, Object>>) data.get("roomList");
                 view.updateRoomList(rooms);
-                view.showRoomList();
                 break;
             case JOIN_ROOM_SUCCESS:
                 // 구현 필요
+            case LOGOUT:
             case LOGOUT_SUCCESS:
                 view.mainView();
+                break;
         }
 
     }
