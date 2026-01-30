@@ -3,6 +3,7 @@ package com.nhnacademy.domain.Header;
 public enum MessageType {
     LOGIN,
     LOGIN_SUCCESS,
+    LOGIN_FAIL,
     LOGOUT,
     LOGOUT_SUCCESS,
     CREATE_ROOM,

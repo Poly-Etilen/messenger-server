@@ -3,6 +3,7 @@ package com.nhnacademy.ui.form.impl;
 import com.nhnacademy.messenger.client.handler.ClientEventHandler;
 import com.nhnacademy.ui.form.View;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
@@ -175,6 +176,7 @@ public class ClientGUI extends Application implements View {
 
     }
 
+    @Override
     public void updateRoomList(List<Map<String, Object>> rooms) {
 
         roomItems.clear();
@@ -184,7 +186,16 @@ public class ClientGUI extends Application implements View {
         }
 
         roomListView.setItems(roomItems);
+    }
 
-
+    @Override
+    public void showError(String title, String content) {
+        Platform.runLater(()->{
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle(title);
+            alert.setHeaderText(null);
+            alert.setContentText(content);
+            alert.showAndWait();
+        });
     }
 }

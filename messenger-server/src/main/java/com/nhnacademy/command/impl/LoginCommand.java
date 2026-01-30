@@ -49,11 +49,11 @@ public class LoginCommand implements Command {
     }
 
     private void handleFail(ClientSession session, String userId) {
-        MessageHeader header = new MessageHeader(MessageType.LOGOUT, LocalDateTime.now());
+        MessageHeader header = new MessageHeader(MessageType.LOGIN_FAIL, LocalDateTime.now());
 
         MessagePayload payload = new MessagePayload();
         payload.getData().put("result", "fail");
-        payload.getData().put("reason", "Invalid Credentials");
+        payload.getData().put("reason", "아이디 또는 비밀번호가 틀렸습니다.");
 
         Message response = new Message("0", header, payload);
 
