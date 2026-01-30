@@ -18,8 +18,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.nhnacademy.util.MessageCodec.sendMessage;
-
 @Slf4j
 public class ClientEventHandler {
     private final ClientGUI view;
@@ -43,13 +41,7 @@ public class ClientEventHandler {
 
         sendMessage(new Message("0", header, payload));
     }
-    public void onCreateRoomClicked(){
-        MessageHeader header = new MessageHeader(MessageType.CREATE_ROOM, LocalDateTime.now());
-        MessagePayload payload = new MessagePayload();
-        payload.getData().put("roomName",roomName);
 
-
-    }
     public void onRoomClicked(ListView<String> roomListView) {
 
         view.showEnterRoom();
@@ -72,6 +64,7 @@ public class ClientEventHandler {
     }
 
     public void onExitRoomClicked() {
+        sendRoomListRequest();
         view.showRoomList();
     }
 
@@ -134,13 +127,21 @@ public class ClientEventHandler {
             case LOGOUT_SUCCESS:
                 view.logout();
                 break;
+            case CREATE_ROOM_SUCCESS:
+                sendRoomListRequest();
+                view.showEnterRoom();
+
         }
 
     }
 
-    public void handleCreateRoom(Stage logoutStage) {
-        view.showEnterRoom();
+    public void handleCreateRoom(Stage logoutStage,String roomName) {
+        MessageHeader header = new MessageHeader(MessageType.CREATE_ROOM, LocalDateTime.now());
+        MessagePayload payload = new MessagePayload();
+        payload.getData().put("roomName",roomName);
+        sendMessage(new Message("0",header,payload));
         logoutStage.close();
+
     }
 
     private void sendRoomListRequest() {

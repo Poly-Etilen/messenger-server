@@ -15,8 +15,7 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import lombok.Setter;
 
-import javax.lang.model.util.Elements.Origin;
-import java.util.ArrayList;
+
 import java.util.List;
 import java.util.Map;
 
@@ -85,9 +84,8 @@ public class ClientGUI extends Application implements View {
         // 중단 : 채팅방 리스트 (ListView 사용)
         roomListView = new ListView<>();
         roomItems = FXCollections.observableArrayList();
-        roomItems.add("test1");
-        roomItems.add("test2");
         roomListView.setItems(roomItems);
+
 
         // 클릭 시 방에 입장
         roomListView.setOnMouseClicked(e -> eventHandler.onRoomClicked(roomListView));
@@ -143,12 +141,7 @@ public class ClientGUI extends Application implements View {
 
         //사용자 리스트
         ListView<String> memberListView = new ListView<>();
-        ObservableList<String> members = FXCollections.observableArrayList(
-                "test",
-                "test1",
-                "test2"
-        );
-        memberListView.setItems(members);
+        ObservableList<String> members;
         layout.setRight(memberListView);
 
 
@@ -202,9 +195,9 @@ public class ClientGUI extends Application implements View {
     public void updateRoomList(List<Map<String, Object>> rooms) {
 
         roomItems.clear();
+
         for (Map<String, Object> room : rooms) {
             roomItems.add((String) room.get("roomname"));
-
         }
 
         roomListView.setItems(roomItems);
@@ -214,7 +207,7 @@ public class ClientGUI extends Application implements View {
     public void createRoom() {
         //방생성 새창 생성
         Stage logoutStage = new Stage();
-        logoutStage.setTitle("Logout");
+        logoutStage.setTitle("CreateRoom");
 
         //방생성 창 닫을때까지 대기
         logoutStage.initOwner(primaryStage);
@@ -233,11 +226,11 @@ public class ClientGUI extends Application implements View {
         //방제목 입력후 엔터나 확인버튼 클릭시 방생성
         roomNameField.setOnAction(e ->{
             this.roomName = roomNameField.getText();
-            eventHandler.handleCreateRoom(logoutStage);
+            eventHandler.handleCreateRoom(logoutStage,roomName);
         });
         okBtn.setOnAction(e -> {
             this.roomName = roomNameField.getText();
-            eventHandler.handleCreateRoom(logoutStage);
+            eventHandler.handleCreateRoom(logoutStage,roomName);
         });
 
         layout.getChildren().addAll(label,roomNameField,okBtn);
