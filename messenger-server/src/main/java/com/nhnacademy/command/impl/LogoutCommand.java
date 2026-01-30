@@ -1,10 +1,12 @@
-package com.nhnacademy.manager;
+package com.nhnacademy.command.impl;
 
 import com.nhnacademy.command.Command;
 import com.nhnacademy.domain.Header.MessageHeader;
 import com.nhnacademy.domain.Header.MessageType;
 import com.nhnacademy.domain.Message;
 import com.nhnacademy.domain.payload.MessagePayload;
+import com.nhnacademy.manager.ChatRoomManager;
+import com.nhnacademy.manager.SessionManager;
 import com.nhnacademy.model.ChatRoom;
 import com.nhnacademy.session.ClientSession;
 import com.nhnacademy.util.MessageCodec;
