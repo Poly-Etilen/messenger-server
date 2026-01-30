@@ -15,5 +15,7 @@ public enum MessageType {
     JOIN_ROOM_FAIL,
     ROOM_USER_LIST,
     ROOM_USER_LIST_RESPONSE,
+    CHAT_MESSAGE,
+    CHAT_MESSAGE_SUCCESS,
     ERROR
 }
