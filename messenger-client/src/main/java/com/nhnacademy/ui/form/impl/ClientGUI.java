@@ -24,6 +24,8 @@ public class ClientGUI extends Application implements View {
 
     @Setter
     private String currentUser;
+    private String roomName;
+
     private Stage primaryStage;
     private ClientEventHandler eventHandler;
     ListView<String> roomListView;
@@ -90,6 +92,9 @@ public class ClientGUI extends Application implements View {
         // 클릭 시 방에 입장
         roomListView.setOnMouseClicked(e -> eventHandler.onRoomClicked(roomListView));
 
+        //클릭 시 방생성 창등장
+        createRoomBtn.setOnAction(e -> createRoom());
+
         layout.setTop(topBar);
         layout.setCenter(roomListView);
 
@@ -122,10 +127,10 @@ public class ClientGUI extends Application implements View {
         exitButton.setOnMouseClicked(e -> eventHandler.onExitRoomClicked());
 
 
-        Label roomName = new Label("방제목: General");
-        roomName.setStyle("-fx-font-size: 15px; -fx-font-weight: bold;");
+        Label label = new Label("방제목: " + roomName);
+        label.setStyle("-fx-font-size: 15px; -fx-font-weight: bold;");
         topBar.setLeft(userLabel);
-        topBar.setCenter(roomName);
+        topBar.setCenter(label);
         topBar.setRight(exitButton);
 
 
@@ -154,6 +159,8 @@ public class ClientGUI extends Application implements View {
             String message = textField.getText();
             textField.clear();
             chatLog.appendText(message + "\n");
+            String sendMessage = currentUser + " : " +message;
+            eventHandler.sendBroadCastMessage(sendMessage);
 
         });
 
@@ -202,6 +209,44 @@ public class ClientGUI extends Application implements View {
 
         roomListView.setItems(roomItems);
     }
+
+    @Override
+    public void createRoom() {
+        //방생성 새창 생성
+        Stage logoutStage = new Stage();
+        logoutStage.setTitle("Logout");
+
+        //방생성 창 닫을때까지 대기
+        logoutStage.initOwner(primaryStage);
+        logoutStage.initModality(Modality.WINDOW_MODAL);
+
+        VBox layout = new VBox(10);
+        layout.setAlignment(Pos.CENTER);
+
+
+        Label label = new Label("방제목을 입력하세요");
+        TextField roomNameField = new TextField();
+        roomNameField.setMaxWidth(200);
+
+        Button okBtn = new Button("확인");
+
+        //방제목 입력후 엔터나 확인버튼 클릭시 방생성
+        roomNameField.setOnAction(e ->{
+            this.roomName = roomNameField.getText();
+            eventHandler.handleCreateRoom(logoutStage);
+        });
+        okBtn.setOnAction(e -> {
+            this.roomName = roomNameField.getText();
+            eventHandler.handleCreateRoom(logoutStage);
+        });
+
+        layout.getChildren().addAll(label,roomNameField,okBtn);
+
+        Scene scene = new Scene(layout,300,200);
+        logoutStage.setScene(scene);
+        logoutStage.show();
+    }
+
 
     @Override
     public void showError(String title, String content) {

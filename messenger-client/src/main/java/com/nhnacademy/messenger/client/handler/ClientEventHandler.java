@@ -8,8 +8,10 @@ import com.nhnacademy.ui.form.impl.ClientGUI;
 import com.nhnacademy.util.MessageCodec;
 import javafx.application.Platform;
 import javafx.scene.control.ListView;
+import javafx.stage.Stage;
 import lombok.extern.slf4j.Slf4j;
 import java.io.IOException;
+import java.lang.reflect.Member;
 import java.net.Socket;
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -23,6 +25,8 @@ public class ClientEventHandler {
     private final ClientGUI view;
     private Socket socket;
     private String myUserId;
+    private String roomId;
+    private String roomName;
 
     public ClientEventHandler(ClientGUI view) {
         this.view = view;
@@ -39,10 +43,25 @@ public class ClientEventHandler {
 
         sendMessage(new Message("0", header, payload));
     }
+    public void onCreateRoomClicked(){
+        MessageHeader header = new MessageHeader(MessageType.CREATE_ROOM, LocalDateTime.now());
+        MessagePayload payload = new MessagePayload();
+        payload.getData().put("roomName",roomName);
 
+
+    }
     public void onRoomClicked(ListView<String> roomListView) {
 
         view.showEnterRoom();
+    }
+
+    public void sendBroadCastMessage(String message){
+        MessageHeader header = new MessageHeader(MessageType.CHAT_MESSAGE,LocalDateTime.now());
+        MessagePayload payload = new MessagePayload();
+        payload.getData().put("roomId","1");
+        payload.getData().put("message",message);
+        //구현중
+
     }
 
 
@@ -54,7 +73,6 @@ public class ClientEventHandler {
 
     public void onExitRoomClicked() {
         view.showRoomList();
-
     }
 
 
@@ -119,6 +137,12 @@ public class ClientEventHandler {
         }
 
     }
+
+    public void handleCreateRoom(Stage logoutStage) {
+        view.showEnterRoom();
+        logoutStage.close();
+    }
+
     private void sendRoomListRequest() {
         MessageHeader header = new MessageHeader(MessageType.ROOM_LIST,LocalDateTime.now());
         MessagePayload payload = new MessagePayload();
