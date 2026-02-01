@@ -1,10 +1,12 @@
 package com.nhnacademy.command.impl;
 
 import com.nhnacademy.command.Command;
+import com.nhnacademy.context.SessionHolder;
 import com.nhnacademy.domain.Header.MessageHeader;
 import com.nhnacademy.domain.Header.MessageType;
 import com.nhnacademy.domain.Message;
 import com.nhnacademy.domain.payload.MessagePayload;
+import com.nhnacademy.exception.DuplicateLoginException;
 import com.nhnacademy.manager.SessionManager;
 import com.nhnacademy.session.ClientSession;
 import com.nhnacademy.util.MessageCodec;
@@ -17,13 +19,19 @@ import java.util.Map;
 @Slf4j
 public class LoginCommand implements Command {
     @Override
-    public void execute(ClientSession session, Message request) {
+    public void execute(Message request) {
+        ClientSession session = SessionHolder.get();
+
         Map<String, Object> data = request.getPayload().getData();
 
         String userId = (String) data.get("userId");
         String password = (String) data.get("password");
 
         log.info("로그인 시도: {}", userId);
+
+        if (SessionManager.getInstance().isLoggedIn(userId)) {
+            throw new DuplicateLoginException(userId);
+        }
 
         if (authenticate(userId, password)) {
             handleSuccess(session, userId);

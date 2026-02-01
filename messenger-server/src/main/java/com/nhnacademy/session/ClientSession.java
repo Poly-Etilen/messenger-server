@@ -1,9 +1,15 @@
 package com.nhnacademy.session;
 
+import com.nhnacademy.annotation.LoginRequired;
 import com.nhnacademy.command.Command;
 import com.nhnacademy.command.impl.*;
+import com.nhnacademy.context.SessionHolder;
+import com.nhnacademy.domain.Header.MessageHeader;
 import com.nhnacademy.domain.Header.MessageType;
 import com.nhnacademy.domain.Message;
+import com.nhnacademy.domain.payload.MessagePayload;
+import com.nhnacademy.exception.MessengerException;
+import com.nhnacademy.exception.NotAuthorizedException;
 import com.nhnacademy.manager.SessionManager;
 import com.nhnacademy.util.MessageCodec;
 import lombok.Getter;
@@ -13,6 +19,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.Socket;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -42,6 +49,7 @@ public class ClientSession implements Runnable{
         commandMap.put(MessageType.LOGOUT, new LogoutCommand());
         commandMap.put(MessageType.ROOM_USER_LIST, new RoomUserListCommand());
         commandMap.put(MessageType.CHAT_MESSAGE, new SendMessageCommand());
+        commandMap.put(MessageType.WHISPER_MESSAGE, new WhisperMessageCommand());
     }
 
     public OutputStream getOutputStream() throws IOException {
@@ -50,6 +58,7 @@ public class ClientSession implements Runnable{
 
     @Override
     public void run() {
+        SessionHolder.set(this);
         try {
             while (socket.isConnected() && !socket.isClosed()) {
                 Message message = MessageCodec.readMessage(socket.getInputStream());
@@ -61,7 +70,15 @@ public class ClientSession implements Runnable{
 
                 Command command = commandMap.get(type);
                 if (command != null) {
-                    command.execute(this, message);
+                    try {
+                        checkPermission(command);
+                        command.execute(message);
+                    } catch (MessengerException e) {
+                        handleMessengerException(e);
+                    } catch (Exception e) {
+                        log.error("알 수 없는 서버 에러", e);
+                        sendError("서버 내부 오류가 발생했습니다.");
+                    }
                 } else {
                     log.warn("알 수 없는 명령어: {}", type);
                 }
@@ -69,6 +86,7 @@ public class ClientSession implements Runnable{
         } catch (IOException e) {
             log.info("연결 종료: {}", userId);
         } finally {
+            SessionHolder.clear();
             disconnect();
         }
 
@@ -84,6 +102,41 @@ public class ClientSession implements Runnable{
             }
         } catch (IOException e) {
             log.error("소켓 종료 에러", e);
+        }
+    }
+
+    private void checkPermission(Command command) {
+        if (command.getClass().isAnnotationPresent(LoginRequired.class)) {
+            if (this.userId == null) {
+                throw new NotAuthorizedException();
+            }
+        }
+    }
+
+    private void handleMessengerException(MessengerException e) {
+        log.warn("요청 처리 실패: {}", e.getMessage());
+
+        MessageHeader header = new MessageHeader(e.getErrorType(), LocalDateTime.now());
+        MessagePayload payload = new MessagePayload();
+        payload.getData().put("result", "fail");
+        payload.getData().put("reason", e.getMessage());
+
+        Message response = new Message("0", header, payload);
+        sendMessage(response);
+    }
+
+    private void sendError(String message) {
+        MessageHeader header = new MessageHeader(MessageType.ERROR, LocalDateTime.now());
+        MessagePayload payload = new MessagePayload();
+        payload.getData().put("reason", message);
+        sendMessage(new Message("0", header, payload));
+    }
+
+    private void sendMessage(Message message) {
+        try {
+            MessageCodec.sendMessage(socket.getOutputStream(), message);
+        } catch (IOException e) {
+            log.error("응답 전송 실패", e);
         }
     }
 }

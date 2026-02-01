@@ -29,6 +29,16 @@ public class RoomParticipationTest extends ServerTestSupport{
     }
 
     @Test
+    @DisplayName("방 입장 실패: 존재하지 않는 방 ID 입력 시 실패 응답 전송")
+    void joinRoomFailTest() {
+        JoinRoomCommand command = new JoinRoomCommand();
+        Message message = createMessage(MessageType.JOIN_ROOM, Map.of("roomId", "invalid"));
+        command.execute(session, message);
+
+        Assertions.assertTrue(out.size() > 0 , " 실패 응답이 클라이언트에게 전송되어야 합니다.");
+    }
+
+    @Test
     @DisplayName("방 유저 목록 조회: 현재 방 인원 정보 전송")
     void roomUserListTest() {
         ChatRoom room = ChatRoomManager.getInstance().createRoom("Dev Room");
