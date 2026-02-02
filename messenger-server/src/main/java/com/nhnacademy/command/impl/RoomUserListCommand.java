@@ -47,7 +47,7 @@ public class RoomUserListCommand implements Command {
         MessageHeader header = new MessageHeader(MessageType.ROOM_USER_LIST_RESPONSE, LocalDateTime.now());
 
         MessagePayload payload = new MessagePayload();
-        payload.getData().put("roomId", roomId);
+        payload.getData().put(MessageKey.ROOM_ID, roomId);
         payload.getData().put("userList", userList);
 
         Message response = new Message("0", header, payload);

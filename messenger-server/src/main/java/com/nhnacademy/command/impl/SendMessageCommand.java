@@ -47,9 +47,9 @@ public class SendMessageCommand implements Command {
     private void broadcastMessage(ChatRoom room, String senderId, String Content) {
         MessageHeader header = new MessageHeader(MessageType.CHAT_MESSAGE, LocalDateTime.now());
         MessagePayload payload = new MessagePayload();
-        payload.getData().put("roomId", room.getId());
-        payload.getData().put("senderId", senderId);
-        payload.getData().put("message", Content);
+        payload.getData().put(MessageKey.ROOM_ID, room.getId());
+        payload.getData().put(MessageKey.SENDER_ID, senderId);
+        payload.getData().put(MessageKey.MESSAGE, Content);
 
         Message broadcastMsg = new Message("0", header, payload);
 
