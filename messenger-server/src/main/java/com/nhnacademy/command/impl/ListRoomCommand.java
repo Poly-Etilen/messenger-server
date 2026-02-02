@@ -38,7 +38,7 @@ public class ListRoomCommand implements Command {
             roomInfoList.add(roomInfo);
         }
 
-        MessageHeader header = new MessageHeader(MessageType.ROOM_LIST_RESPONSE, LocalDateTime.now());
+        MessageHeader header = new MessageHeader(MessageType.CHAT_ROOM_LIST_SUCCESS, LocalDateTime.now());
 
         MessagePayload payload = new MessagePayload();
         payload.getData().put(MessageKey.ROOM_LIST, roomInfoList);

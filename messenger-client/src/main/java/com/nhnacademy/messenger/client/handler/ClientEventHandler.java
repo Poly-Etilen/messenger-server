@@ -7,15 +7,12 @@ import com.nhnacademy.domain.payload.MessagePayload;
 import com.nhnacademy.ui.form.impl.ClientGUI;
 import com.nhnacademy.util.MessageCodec;
 import javafx.application.Platform;
-import javafx.scene.control.ListView;
 import javafx.stage.Stage;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
-import java.lang.reflect.Member;
 import java.net.Socket;
 import java.time.LocalDateTime;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -52,7 +49,7 @@ public class ClientEventHandler {
         }
 
         MessageHeader header =
-                new MessageHeader(MessageType.JOIN_ROOM, LocalDateTime.now());
+                new MessageHeader(MessageType.CHAT_ROOM_ENTER, LocalDateTime.now());
 
         MessagePayload payload = new MessagePayload();
         payload.getData().put("roomId", selectedRoomId);
@@ -131,11 +128,11 @@ public class ClientEventHandler {
                 }
                 view.showError("로그인 실패", reason);
                 break;
-            case ROOM_LIST_RESPONSE:
+            case CHAT_ROOM_LIST_SUCCESS:
                 List<Map<String, Object>> rooms = (List<Map<String, Object>>) data.get("roomList");
                 view.updateRoomList(rooms);
                 break;
-            case JOIN_ROOM_SUCCESS:
+            case CHAT_ROOM_ENTER_SUCCESS:
                 this.roomId = (String) data.get("roomId");
                 this.roomName = (String) data.get("roomName");
                 view.showEnterRoom();
@@ -151,7 +148,7 @@ public class ClientEventHandler {
     }
 
     public void handleCreateRoom(Stage createStage, String roomName) {
-        MessageHeader header = new MessageHeader(MessageType.CREATE_ROOM, LocalDateTime.now());
+        MessageHeader header = new MessageHeader(MessageType.CHAT_ROOM_CREATE, LocalDateTime.now());
         MessagePayload payload = new MessagePayload();
         payload.getData().put("roomName", roomName);
         sendMessage(new Message("0", header, payload));
@@ -162,7 +159,7 @@ public class ClientEventHandler {
     }
 
     private void sendRoomListRequest() {
-        MessageHeader header = new MessageHeader(MessageType.ROOM_LIST, LocalDateTime.now());
+        MessageHeader header = new MessageHeader(MessageType.CHAT_ROOM_LIST, LocalDateTime.now());
         MessagePayload payload = new MessagePayload();
         sendMessage(new Message("0", header, payload));
 

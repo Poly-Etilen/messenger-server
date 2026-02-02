@@ -10,15 +10,16 @@ public class CommandFactory {
     public Map<MessageType, Command> createCommandMap() {
         Map<MessageType, Command> commandMap = new HashMap<>();
         commandMap.put(MessageType.LOGIN, new LoginCommand());
-        commandMap.put(MessageType.CREATE_ROOM, new CreateRoomCommand());
-        commandMap.put(MessageType.ROOM_LIST, new ListRoomCommand());
-        commandMap.put(MessageType.JOIN_ROOM, new JoinRoomCommand());
         commandMap.put(MessageType.LOGOUT, new LogoutCommand());
-        commandMap.put(MessageType.ROOM_USER_LIST, new RoomUserListCommand());
+        commandMap.put(MessageType.CHAT_ROOM_CREATE, new CreateRoomCommand());
+        commandMap.put(MessageType.CHAT_ROOM_ENTER, new JoinRoomCommand());
+        commandMap.put(MessageType.CHAT_ROOM_EXIT, new LeaveRoomCommand());
+        commandMap.put(MessageType.CHAT_ROOM_LIST, new ListRoomCommand());
         commandMap.put(MessageType.CHAT_MESSAGE, new SendMessageCommand());
-        commandMap.put(MessageType.WHISPER_MESSAGE, new WhisperMessageCommand());
-        commandMap.put(MessageType.MESSAGE_HISTORY, new MessageHistoryCommand());
-        commandMap.put(MessageType.LEAVE_ROOM, new LeaveRoomCommand());
+        commandMap.put(MessageType.PRIVATE_MESSAGE, new WhisperMessageCommand());
+        commandMap.put(MessageType.CHAT_MESSAGE_HISTORY, new MessageHistoryCommand());
+        commandMap.put(MessageType.USER_LIST, new UserListCommand());
+        commandMap.put(MessageType.FILE_TRANSFER, new FileTransferCommand());
 
         return commandMap;
     }

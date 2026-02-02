@@ -63,7 +63,7 @@ public class MessagingTest extends ServerTestSupport{
         SessionManager.getInstance().addSession("receiver", receiverSession);
 
         WhisperMessageCommand command = new WhisperMessageCommand();
-        Message message = createMessage(MessageType.WHISPER_MESSAGE, Map.of(
+        Message message = createMessage(MessageType.PRIVATE_MESSAGE, Map.of(
                 "receiverId", "receiver",
                 "message", " Secret Message"
         ));
