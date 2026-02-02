@@ -7,15 +7,11 @@ import com.nhnacademy.domain.payload.MessagePayload;
 import com.nhnacademy.ui.form.impl.ClientGUI;
 import com.nhnacademy.util.MessageCodec;
 import javafx.application.Platform;
-import javafx.scene.control.ListView;
 import javafx.stage.Stage;
 import lombok.extern.slf4j.Slf4j;
-
 import java.io.IOException;
-import java.lang.reflect.Member;
 import java.net.Socket;
 import java.time.LocalDateTime;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -78,8 +74,7 @@ public class ClientEventHandler {
     }
 
     public void onExitRoomClicked() {
-        sendRoomListRequest();
-        view.showRoomList();
+        leaveRoomRequest();
     }
 
 
@@ -138,39 +133,56 @@ public class ClientEventHandler {
             case JOIN_ROOM_SUCCESS:
                 this.roomId = (String) data.get("roomId");
                 this.roomName = (String) data.get("roomName");
-                sendMemberListRequest(roomId);
                 view.showEnterRoom();
+                sendMemberListRequest();
+                break;
+            case CREATE_ROOM_SUCCESS:
+                this.roomId = (String) data.get("roomId");
+                this.roomName = (String) data.get("roomName");
+                view.showEnterRoom();
+                sendMemberListRequest();
+                break;
+            case LEAVE_ROOM_SUCCESS:
+                sendMemberListRequest();
+                sendRoomListRequest();
+                view.showRoomList();
                 break;
             case ROOM_USER_LIST_RESPONSE:
                 roomId = (String) data.get("roomId");
                 List<String> userList = (List<String>) data.get("userList");
-                view.updateMemberList(userList,roomId);
+                view.updateMemberList(userList);
                 break;
             case LOGOUT:
             case LOGOUT_SUCCESS:
                 view.logout();
                 break;
-
-
         }
 
     }
-
-    public void sendMemberListRequest(String roomId){
-        MessageHeader header = new MessageHeader(MessageType.ROOM_USER_LIST,LocalDateTime.now());
+    public void leaveRoomRequest(){
+        MessageHeader header = new MessageHeader(MessageType.LEAVE_ROOM,LocalDateTime.now());
         MessagePayload payload = new MessagePayload();
         payload.getData().put("roomId",roomId);
         sendMessage(new Message("0",header,payload));
+    }
+
+    public void sendMemberListRequest(){
+        MessageHeader header = new MessageHeader(MessageType.ROOM_USER_LIST,LocalDateTime.now());
+        MessagePayload payload = new MessagePayload();
+        payload.getData().put("roomId",this.roomId);
+        sendMessage(new Message("0",header,payload));
 
     }
-    public void handleCreateRoom(Stage createStage, String roomName) {
+    public void handleCreateRoom(Stage createStage,String roomName) {
         MessageHeader header = new MessageHeader(MessageType.CREATE_ROOM, LocalDateTime.now());
         MessagePayload payload = new MessagePayload();
-        payload.getData().put("roomName", roomName);
+        payload.getData().put("roomName",roomName);
         sendMessage(new Message("0", header, payload));
         createStage.close();
         sendRoomListRequest();
         view.showEnterRoom();
+        this.roomId = view.getRoomIdByName(roomName);
+
 
     }
 

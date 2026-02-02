@@ -20,6 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 @Slf4j
 public class ClientGUI extends Application implements View {
@@ -31,12 +32,12 @@ public class ClientGUI extends Application implements View {
     private Stage primaryStage;
     private ClientEventHandler eventHandler;
     private final Map<String, String> roomNameToId = new HashMap<>();
-    private List<String> memberList;
     ListView<String> roomListView;
-    ListView<String> memberListView;
+    ObservableList<String> roomItems;// ClientGUI 필드
+    private ListView<String> memberListView = new ListView<>();
+    private ObservableList<String> memberItems = FXCollections.observableArrayList();
 
-    ObservableList<String> roomItems;
-    ObservableList<String> memberItems;
+
 
     @Override
     public void start(Stage primaryStage) {
@@ -155,10 +156,7 @@ public class ClientGUI extends Application implements View {
         layout.setCenter(chatLog);
 
         //사용자 리스트
-        memberListView = new ListView<>();
-        memberItems = FXCollections.observableArrayList();
         memberListView.setItems(memberItems);
-
         layout.setRight(memberListView);
 
 
@@ -225,15 +223,11 @@ public class ClientGUI extends Application implements View {
 
     }
 
-    public void updateMemberList(List<String> memberList, String roomId) {
-
-        if (!roomId.equals(getRoomIdByName(roomName))) {
-            log.debug("동기화 오류");
-
+    public void updateMemberList(List<String> memberList) {
+        if(Objects.isNull(memberList) || memberList.isEmpty()){
+            return;
         }
-        memberItems.addAll(memberList);
-        memberListView.setItems(memberItems);
-
+        memberItems.setAll(memberList);
     }
 
 
@@ -260,11 +254,11 @@ public class ClientGUI extends Application implements View {
         //방제목 입력후 엔터나 확인버튼 클릭시 방생성
         roomNameField.setOnAction(e -> {
             this.roomName = roomNameField.getText();
-            eventHandler.handleCreateRoom(logoutStage, roomName);
+            eventHandler.handleCreateRoom(logoutStage,roomName);
         });
         okBtn.setOnAction(e -> {
             this.roomName = roomNameField.getText();
-            eventHandler.handleCreateRoom(logoutStage, roomName);
+            eventHandler.handleCreateRoom(logoutStage,roomName);
         });
 
         layout.getChildren().addAll(label, roomNameField, okBtn);
