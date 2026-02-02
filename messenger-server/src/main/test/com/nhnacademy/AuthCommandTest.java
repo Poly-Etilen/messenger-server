@@ -24,7 +24,7 @@ public class AuthCommandTest extends ServerTestSupport{
                 "password", "nhnacademy123"
         ));
 
-        loginCommand.execute(session, request);
+        loginCommand.execute(request);
 
         Assertions.assertTrue(SessionManager.getInstance().isLoggedIn("marco"));
         Assertions.assertEquals("marco", session.getUserId());
@@ -39,7 +39,7 @@ public class AuthCommandTest extends ServerTestSupport{
                 "userId", "marco",
                 "password", "wrongPassword"
         ));
-        loginCommand.execute(session, request);
+        loginCommand.execute(request);
         Assertions.assertFalse(SessionManager.getInstance().isLoggedIn("marco"));
         Assertions.assertNull(session.getUserId());
     }
@@ -57,7 +57,7 @@ public class AuthCommandTest extends ServerTestSupport{
         LogoutCommand logoutCommand = new LogoutCommand();
         Message request = createMessage(MessageType.LOGOUT, Map.of());
 
-        logoutCommand.execute(session, request);
+        logoutCommand.execute(request);
 
         Assertions.assertFalse(SessionManager.getInstance().isLoggedIn("marco"));
         Assertions.assertFalse(room.getSessions().contains(session));

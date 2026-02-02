@@ -1,6 +1,7 @@
 package com.nhnacademy.command.impl;
 
 import com.nhnacademy.command.Command;
+import com.nhnacademy.constant.MessageKey;
 import com.nhnacademy.context.SessionHolder;
 import com.nhnacademy.domain.Header.MessageHeader;
 import com.nhnacademy.domain.Header.MessageType;
@@ -10,6 +11,7 @@ import com.nhnacademy.exception.DuplicateLoginException;
 import com.nhnacademy.manager.SessionManager;
 import com.nhnacademy.session.ClientSession;
 import com.nhnacademy.util.MessageCodec;
+import com.nhnacademy.util.PayloadExtractor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
@@ -24,8 +26,8 @@ public class LoginCommand implements Command {
 
         Map<String, Object> data = request.getPayload().getData();
 
-        String userId = (String) data.get("userId");
-        String password = (String) data.get("password");
+        String userId = PayloadExtractor.getRequired(request, MessageKey.USER_ID);
+        String password = PayloadExtractor.getRequired(request, MessageKey.PASSWORD);
 
         log.info("로그인 시도: {}", userId);
 
