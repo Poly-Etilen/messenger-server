@@ -152,19 +152,36 @@ public class ClientEventHandler {
                 break;
             case USER_LIST_SUCCESS:
                 List<String> userList = (List<String>) data.get("userList");
+                log.debug("유저 조회 성공");
+                log.debug("{}",userList);
                 view.updateMemberList(userList);
                 break;
             case LOGOUT:
             case LOGOUT_SUCCESS:
                 view.logout();
                 break;
+            case CHAT_MESSAGE:
+                roomId = (String)data.get("roomId");
+                String senderId = (String)data.get("senderId");
+                String content = (String)data.get("message");
+                log.debug("메세지 수신 성공 roomId: {}, senderID: {}",roomId,senderId);
+                receiveMessage(content);
+                break;
             case CHAT_MESSAGE_SUCCESS:
-                String roomId = (String) data.get("roomId");
+                roomId = (String) data.get("roomId");
                 long messageId = (long) data.get("messageId");
                 log.debug("메세지 전송 성공 roomId: {}, messageId: {}",roomId,messageId);
+                break;
+
         }
 
     }
+
+    private void receiveMessage(String content) {
+        view.writeMessage(content);
+
+    }
+
     public void leaveRoomRequest(){
         MessageHeader header = new MessageHeader(MessageType.CHAT_ROOM_EXIT,LocalDateTime.now());
         MessagePayload payload = new MessagePayload();
@@ -209,5 +226,9 @@ public class ClientEventHandler {
         }
     }
 
+    public void onRefreshClicked() {
+        log.info("방 목록 새로고침 요청");
+        sendRoomListRequest(); // 기존에 작성하신 private 메서드 호출
+    }
 
 }
