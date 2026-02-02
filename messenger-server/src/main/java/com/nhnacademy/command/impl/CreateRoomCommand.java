@@ -2,6 +2,7 @@ package com.nhnacademy.command.impl;
 
 import com.nhnacademy.annotation.LoginRequired;
 import com.nhnacademy.command.Command;
+import com.nhnacademy.constant.MessageKey;
 import com.nhnacademy.context.SessionHolder;
 import com.nhnacademy.domain.Header.MessageHeader;
 import com.nhnacademy.domain.Header.MessageType;
@@ -12,6 +13,7 @@ import com.nhnacademy.manager.ChatRoomManager;
 import com.nhnacademy.model.ChatRoom;
 import com.nhnacademy.session.ClientSession;
 import com.nhnacademy.util.MessageCodec;
+import com.nhnacademy.util.PayloadExtractor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
@@ -24,7 +26,7 @@ public class CreateRoomCommand implements Command {
     @Override
     public void execute(Message request) {
         ClientSession session = SessionHolder.get();
-        String roomName = (String) request.getPayload().getData().get("roomName");
+        String roomName = PayloadExtractor.getRequired(request, MessageKey.ROOM_NAME);
 
         if (roomName == null || roomName.trim().isEmpty()) {
             throw new InvalidRequestException("방 이름이 공백일 수 없습니다.");
