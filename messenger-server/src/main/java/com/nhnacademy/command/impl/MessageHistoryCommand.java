@@ -40,16 +40,16 @@ public class MessageHistoryCommand implements Command {
 
         for (ChatRoom.StoredMessage msg : room.getMessageLog()) {
             Map<String, String> msgMap = new HashMap<>();
-            msgMap.put("senderId", msg.getSenderId());
-            msgMap.put("message", msg.getContent());
-            msgMap.put("timestamp", msg.getTimestamp().toString());
+            msgMap.put(MessageKey.SENDER_ID, msg.getSenderId());
+            msgMap.put(MessageKey.MESSAGE, msg.getContent());
+            msgMap.put(MessageKey.TIMESTAMP, msg.getTimestamp().toString());
             historyData.add(msgMap);
         }
 
         MessageHeader messageHeader = new MessageHeader(MessageType.MESSAGE_HISTORY_RESPONSE, LocalDateTime.now());
         MessagePayload payload = new MessagePayload();
-        payload.getData().put("roomId", roomId);
-        payload.getData().put("history", historyData);
+        payload.getData().put(MessageKey.ROOM_ID, roomId);
+        payload.getData().put(MessageKey.HISTORY, historyData);
         Message response = new Message("0", messageHeader, payload);
 
         try {

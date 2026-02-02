@@ -47,9 +47,9 @@ public class JoinRoomCommand implements Command {
         MessageHeader header = new MessageHeader(MessageType.JOIN_ROOM_SUCCESS, LocalDateTime.now());
 
         MessagePayload payload = new MessagePayload();
-        payload.getData().put("result", "ok");
-        payload.getData().put("roomId", room.getId());
-        payload.getData().put("roomName", room.getName());
+        payload.getData().put(MessageKey.RESULT, "ok");
+        payload.getData().put(MessageKey.ROOM_ID, room.getId());
+        payload.getData().put(MessageKey.ROOM_NAME, room.getName());
 
         Message response = new Message("0", header, payload);
         sendMessage(session, response);

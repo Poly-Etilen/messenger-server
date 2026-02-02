@@ -2,6 +2,7 @@ package com.nhnacademy.command.impl;
 
 import com.nhnacademy.annotation.LoginRequired;
 import com.nhnacademy.command.Command;
+import com.nhnacademy.constant.MessageKey;
 import com.nhnacademy.context.SessionHolder;
 import com.nhnacademy.domain.Header.MessageHeader;
 import com.nhnacademy.domain.Header.MessageType;
@@ -31,8 +32,8 @@ public class ListRoomCommand implements Command {
         List<Map<String, Object>> roomInfoList = new ArrayList<>();
         for (ChatRoom room : rooms) {
             Map<String, Object> roomInfo = new HashMap<>();
-            roomInfo.put("roomId", room.getId());
-            roomInfo.put("roomName", room.getName());
+            roomInfo.put(MessageKey.ROOM_ID, room.getId());
+            roomInfo.put(MessageKey.ROOM_NAME, room.getName());
             roomInfo.put("userCount", room.getSessions().size());
             roomInfoList.add(roomInfo);
         }
@@ -40,7 +41,7 @@ public class ListRoomCommand implements Command {
         MessageHeader header = new MessageHeader(MessageType.ROOM_LIST_RESPONSE, LocalDateTime.now());
 
         MessagePayload payload = new MessagePayload();
-        payload.getData().put("roomList", roomInfoList);
+        payload.getData().put(MessageKey.ROOM_LIST, roomInfoList);
 
         Message response = new Message("0", header, payload);
 
