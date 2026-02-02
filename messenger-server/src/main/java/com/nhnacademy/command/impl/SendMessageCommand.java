@@ -35,6 +35,7 @@ public class SendMessageCommand implements Command {
 
         String senderId = session.getUserId();
         long messageId = System.currentTimeMillis();
+        room.addMessage(senderId,messageContent);
 
         broadcastMessage(room, senderId, messageContent);
 
