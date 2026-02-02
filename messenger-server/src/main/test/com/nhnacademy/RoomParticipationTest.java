@@ -5,6 +5,7 @@ import com.nhnacademy.command.impl.JoinRoomCommand;
 import com.nhnacademy.command.impl.RoomUserListCommand;
 import com.nhnacademy.domain.Header.MessageType;
 import com.nhnacademy.domain.Message;
+import com.nhnacademy.exception.RoomNotFoundException;
 import com.nhnacademy.manager.ChatRoomManager;
 import com.nhnacademy.model.ChatRoom;
 import org.junit.jupiter.api.Assertions;
@@ -22,7 +23,7 @@ public class RoomParticipationTest extends ServerTestSupport{
         JoinRoomCommand command = new JoinRoomCommand();
         Message message = createMessage(MessageType.JOIN_ROOM, Map.of("roomId", room.getId()));
 
-        command.execute(session, message);
+        command.execute(message);
 
         Assertions.assertTrue(room.getSessions().contains(session));
         Assertions.assertTrue(out.size() > 0, "입장 성공 메시지가 전송되어야 함");
@@ -33,9 +34,7 @@ public class RoomParticipationTest extends ServerTestSupport{
     void joinRoomFailTest() {
         JoinRoomCommand command = new JoinRoomCommand();
         Message message = createMessage(MessageType.JOIN_ROOM, Map.of("roomId", "invalid"));
-        command.execute(session, message);
-
-        Assertions.assertTrue(out.size() > 0 , " 실패 응답이 클라이언트에게 전송되어야 합니다.");
+        Assertions.assertThrows(RoomNotFoundException.class, () -> command.execute(message));
     }
 
     @Test
@@ -49,7 +48,7 @@ public class RoomParticipationTest extends ServerTestSupport{
         RoomUserListCommand command = new RoomUserListCommand();
         Message message = createMessage(MessageType.ROOM_USER_LIST, Map.of("roomId", room.getId()));
 
-        command.execute(session, message);
+        command.execute(message);
 
         Assertions.assertTrue(out.size() > 0, "유저 목록이 전송되어야 함");
     }

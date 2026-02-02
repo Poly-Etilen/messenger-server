@@ -1,5 +1,6 @@
 package com.nhnacademy;
 
+import com.nhnacademy.context.SessionHolder;
 import com.nhnacademy.domain.Header.MessageHeader;
 import com.nhnacademy.domain.Header.MessageType;
 import com.nhnacademy.domain.Message;
@@ -10,6 +11,7 @@ import com.nhnacademy.session.ClientSession;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
 import java.io.ByteArrayOutputStream;
@@ -23,24 +25,25 @@ import static org.mockito.Mockito.when;
 
 public class ServerTestSupport {
 
-    @Mock
-    protected Socket mockSocket;
-
     protected ClientSession session;
     protected ByteArrayOutputStream out;
+    protected Socket socket;
 
     @BeforeEach
     public void setup() throws IOException {
-        MockitoAnnotations.openMocks(this);
+        socket = Mockito.mock(Socket.class);
         out = new ByteArrayOutputStream();
-        when(mockSocket.getOutputStream()).thenReturn(out);
-        session = new ClientSession(mockSocket);
+        when(socket.getOutputStream()).thenReturn(out);
+        session = new ClientSession(socket);
+        SessionHolder.set(session);
     }
 
     @AfterEach
     void teardown() {
-        resetSingleton(SessionManager.getInstance(), "sessionMap");
+        SessionHolder.clear();
+
         resetSingleton(ChatRoomManager.getInstance(), "roomMaps");
+        resetSingleton(SessionManager.getInstance(), "sessionMap");
     }
 
     protected void resetSingleton(Object instance, String fieldName) {
@@ -49,7 +52,7 @@ public class ServerTestSupport {
             field.setAccessible(true);
             ((Map<?,?>) field.get(instance)).clear();
         } catch (Exception e) {
-            throw new RuntimeException("싱글톤 초기화 실해: " + fieldName, e);
+            throw new RuntimeException("싱글톤 초기화 실패: " + fieldName, e);
         }
     }
 
@@ -57,7 +60,7 @@ public class ServerTestSupport {
         MessageHeader header = new MessageHeader(type, LocalDateTime.now());
         MessagePayload payload = new MessagePayload();
         if (data != null) {
-            data.forEach((k,v)-> payload.getData().put(k, v));
+            payload.getData().putAll(data);
         }
         return  new Message("0", header, payload);
     }

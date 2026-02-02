@@ -122,7 +122,7 @@ public class ClientSession implements Runnable{
         sendMessage(new Message("0", header, payload));
     }
 
-    private void sendMessage(Message message) {
+    public void sendMessage(Message message) {
         try {
             MessageCodec.sendMessage(socket.getOutputStream(), message);
         } catch (IOException e) {

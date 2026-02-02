@@ -18,6 +18,7 @@ public class CommandFactory {
         commandMap.put(MessageType.CHAT_MESSAGE, new SendMessageCommand());
         commandMap.put(MessageType.WHISPER_MESSAGE, new WhisperMessageCommand());
         commandMap.put(MessageType.MESSAGE_HISTORY, new MessageHistoryCommand());
+        commandMap.put(MessageType.LEAVE_ROOM, new LeaveRoomCommand());
 
         return commandMap;
     }
