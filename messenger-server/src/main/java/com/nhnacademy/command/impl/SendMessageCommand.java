@@ -35,6 +35,11 @@ public class SendMessageCommand implements Command {
             return;
         }
 
+        if (!room.getSessions().contains(session)) {
+            log.warn("차단됨: 방에 입장하지 않는 사용자({})가 메시지 전송 시도", session.getUserId());
+            return;
+        }
+
         String senderId = session.getUserId();
         long messageId = System.currentTimeMillis();
         room.addMessage(senderId,messageContent);
@@ -52,6 +57,12 @@ public class SendMessageCommand implements Command {
         payload.getData().put(MessageKey.MESSAGE, Content);
 
         Message broadcastMsg = new Message("0", header, payload);
+
+        log.debug("현재 방({}) 참여자 수: {}, 참여자 목록: {}",
+                room.getId(),
+                room.getSessions().size(),
+                room.getSessions().stream().map(ClientSession::getUserId).toList()
+        );
 
         for (ClientSession s : room.getSessions()) {
             try {

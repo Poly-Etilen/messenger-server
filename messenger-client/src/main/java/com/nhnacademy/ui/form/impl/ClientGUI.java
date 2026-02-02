@@ -170,8 +170,7 @@ public class ClientGUI extends Application implements View {
         textField.setOnAction(e -> {
             String message = textField.getText();
             textField.clear();
-            writeMessage(message);
-            eventHandler.sendBroadCastMessage(currentUser + message);
+            eventHandler.sendBroadCastMessage("[" + currentUser + "] " + message);
 
         });
 
