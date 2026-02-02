@@ -7,6 +7,7 @@ import com.nhnacademy.domain.Header.MessageHeader;
 import com.nhnacademy.domain.Header.MessageType;
 import com.nhnacademy.domain.Message;
 import com.nhnacademy.domain.payload.MessagePayload;
+import com.nhnacademy.exception.InvalidRequestException;
 import com.nhnacademy.manager.ChatRoomManager;
 import com.nhnacademy.model.ChatRoom;
 import com.nhnacademy.session.ClientSession;
@@ -26,7 +27,7 @@ public class CreateRoomCommand implements Command {
         String roomName = (String) request.getPayload().getData().get("roomName");
 
         if (roomName == null || roomName.trim().isEmpty()) {
-            return;
+            throw new InvalidRequestException("방 이름이 공백일 수 없습니다.");
         }
 
         ChatRoom newRoom = ChatRoomManager.getInstance().createRoom(roomName);

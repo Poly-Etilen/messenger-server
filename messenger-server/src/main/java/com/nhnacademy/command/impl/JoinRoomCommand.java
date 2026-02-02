@@ -7,6 +7,7 @@ import com.nhnacademy.domain.Header.MessageHeader;
 import com.nhnacademy.domain.Header.MessageType;
 import com.nhnacademy.domain.Message;
 import com.nhnacademy.domain.payload.MessagePayload;
+import com.nhnacademy.exception.AlreadyJoinedException;
 import com.nhnacademy.exception.RoomNotFoundException;
 import com.nhnacademy.manager.ChatRoomManager;
 import com.nhnacademy.model.ChatRoom;
@@ -30,6 +31,10 @@ public class JoinRoomCommand implements Command {
 
         if (room == null) {
             throw new RoomNotFoundException(roomId);
+        }
+
+        if (room.getSessions().contains(session)) {
+            throw new AlreadyJoinedException();
         }
 
         room.addSession(session);
