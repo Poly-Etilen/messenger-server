@@ -139,19 +139,18 @@ public class ClientEventHandler {
                 view.showEnterRoom();
                 sendMemberListRequest();
                 break;
-            case CREATE_ROOM_SUCCESS:
+            case CHAT_ROOM_CREATE_SUCCESS:
                 this.roomId = (String) data.get("roomId");
                 this.roomName = (String) data.get("roomName");
                 view.showEnterRoom();
                 sendRoomListRequest();
                 sendMemberListRequest();
                 break;
-            case LEAVE_ROOM_SUCCESS:
+            case CHAT_ROOM_EXIT_SUCCESS:
                 sendRoomListRequest();
                 view.showRoomList();
                 break;
-            case ROOM_USER_LIST_RESPONSE:
-                roomId = (String) data.get("roomId");
+            case USER_LIST_SUCCESS:
                 List<String> userList = (List<String>) data.get("userList");
                 view.updateMemberList(userList);
                 break;
@@ -167,24 +166,23 @@ public class ClientEventHandler {
 
     }
     public void leaveRoomRequest(){
-        MessageHeader header = new MessageHeader(MessageType.LEAVE_ROOM,LocalDateTime.now());
+        MessageHeader header = new MessageHeader(MessageType.CHAT_ROOM_EXIT,LocalDateTime.now());
         MessagePayload payload = new MessagePayload();
         payload.getData().put("roomId",roomId);
         sendMessage(new Message("0",header,payload));
     }
 
     public void sendMemberListRequest(){
-        MessageHeader header = new MessageHeader(MessageType.ROOM_USER_LIST,LocalDateTime.now());
+        MessageHeader header = new MessageHeader(MessageType.USER_LIST,LocalDateTime.now());
         MessagePayload payload = new MessagePayload();
         payload.getData().put("roomId",this.roomId);
         sendMessage(new Message("0",header,payload));
 
     }
 
-    public void handleCreateRoom(Stage createStage, String roomName) {
-        MessageHeader header = new MessageHeader(MessageType.CHAT_ROOM_CREATE, LocalDateTime.now());
+
     public void handleCreateRoom(Stage createStage,String roomName) {
-        MessageHeader header = new MessageHeader(MessageType.CREATE_ROOM, LocalDateTime.now());
+        MessageHeader header = new MessageHeader(MessageType.CHAT_ROOM_CREATE, LocalDateTime.now());
         MessagePayload payload = new MessagePayload();
         payload.getData().put("roomName",roomName);
         sendMessage(new Message("0", header, payload));
