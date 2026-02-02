@@ -41,7 +41,7 @@ public class WhisperMessageCommand implements Command {
     }
 
     private void sendToReceiver(ClientSession receiver, String senderId, String content) {
-        MessageHeader header = new MessageHeader(MessageType.WHISPER_MESSAGE_RECEIVE, LocalDateTime.now());
+        MessageHeader header = new MessageHeader(MessageType.PRIVATE_MESSAGE_RECEIVE, LocalDateTime.now());
         MessagePayload payload = new MessagePayload();
         payload.getData().put(MessageKey.RECEIVER_ID, senderId);
         payload.getData().put("content", content);
@@ -50,7 +50,7 @@ public class WhisperMessageCommand implements Command {
     }
 
     private void sendToSender(ClientSession sender, String receiverId, String messageContent) {
-        MessageHeader header = new MessageHeader(MessageType.WHISPER_MESSAGE_SUCCESS, LocalDateTime.now());
+        MessageHeader header = new MessageHeader(MessageType.PRIVATE_MESSAGE_SUCCESS, LocalDateTime.now());
         MessagePayload payload = new MessagePayload();
         payload.getData().put(MessageKey.RECEIVER_ID, receiverId);
         payload.getData().put("content", messageContent);

@@ -1,17 +1,20 @@
 package com.nhnacademy;
 
-import com.nhnacademy.command.impl.CreateRoomCommand;
 import com.nhnacademy.command.impl.JoinRoomCommand;
-import com.nhnacademy.command.impl.RoomUserListCommand;
+import com.nhnacademy.command.impl.UserListCommand;
 import com.nhnacademy.domain.Header.MessageType;
 import com.nhnacademy.domain.Message;
 import com.nhnacademy.exception.RoomNotFoundException;
 import com.nhnacademy.manager.ChatRoomManager;
+import com.nhnacademy.manager.SessionManager;
 import com.nhnacademy.model.ChatRoom;
+import com.nhnacademy.session.ClientSession;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
+import java.net.Socket;
 import java.util.Map;
 
 public class RoomParticipationTest extends ServerTestSupport{
@@ -21,7 +24,7 @@ public class RoomParticipationTest extends ServerTestSupport{
     void joinRoomTest() {
         ChatRoom room = ChatRoomManager.getInstance().createRoom("Game Room");
         JoinRoomCommand command = new JoinRoomCommand();
-        Message message = createMessage(MessageType.JOIN_ROOM, Map.of("roomId", room.getId()));
+        Message message = createMessage(MessageType.CHAT_ROOM_ENTER, Map.of("roomId", room.getId()));
 
         command.execute(message);
 
@@ -33,23 +36,29 @@ public class RoomParticipationTest extends ServerTestSupport{
     @DisplayName("방 입장 실패: 존재하지 않는 방 ID 입력 시 실패 응답 전송")
     void joinRoomFailTest() {
         JoinRoomCommand command = new JoinRoomCommand();
-        Message message = createMessage(MessageType.JOIN_ROOM, Map.of("roomId", "invalid"));
+        Message message = createMessage(MessageType.CHAT_ROOM_ENTER, Map.of("roomId", "invalid"));
         Assertions.assertThrows(RoomNotFoundException.class, () -> command.execute(message));
     }
 
     @Test
     @DisplayName("방 유저 목록 조회: 현재 방 인원 정보 전송")
-    void roomUserListTest() {
-        ChatRoom room = ChatRoomManager.getInstance().createRoom("Dev Room");
+    void userListTest() {
         session.setUserId("marco");
-        session.setCurrentRoomId(room.getId());
-        room.addSession(session);
+        SessionManager.getInstance().addSession("marco", session);
 
-        RoomUserListCommand command = new RoomUserListCommand();
-        Message message = createMessage(MessageType.ROOM_USER_LIST, Map.of("roomId", room.getId()));
+        ClientSession otherSession = new ClientSession(Mockito.mock(Socket.class));
+        otherSession.setUserId("nhn");
+        SessionManager.getInstance().addSession("nhn", otherSession);
+
+        UserListCommand command = new UserListCommand();
+        Message message = createMessage(MessageType.USER_LIST, Map.of());
 
         command.execute(message);
 
-        Assertions.assertTrue(out.size() > 0, "유저 목록이 전송되어야 함");
+        String response = out.toString();
+
+        Assertions.assertTrue(out.size() > 0, "응답이 전송되어야 합니다.");
+        Assertions.assertTrue(response.contains("marco"), "응답에 'marco'가 포함되어야 합니다.");
+        Assertions.assertTrue(response.contains("nhn"), "응답에 'nhn'이 포함되어야 합니다.");
     }
 }

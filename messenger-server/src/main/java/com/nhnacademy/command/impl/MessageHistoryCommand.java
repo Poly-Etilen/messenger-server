@@ -46,7 +46,7 @@ public class MessageHistoryCommand implements Command {
             historyData.add(msgMap);
         }
 
-        MessageHeader messageHeader = new MessageHeader(MessageType.MESSAGE_HISTORY_RESPONSE, LocalDateTime.now());
+        MessageHeader messageHeader = new MessageHeader(MessageType.CHAT_MESSAGE_HISTORY_SUCCESS, LocalDateTime.now());
         MessagePayload payload = new MessagePayload();
         payload.getData().put(MessageKey.ROOM_ID, roomId);
         payload.getData().put(MessageKey.HISTORY, historyData);

@@ -44,7 +44,7 @@ public class JoinRoomCommand implements Command {
     }
 
     private void sendSuccess(ClientSession session, ChatRoom room) {
-        MessageHeader header = new MessageHeader(MessageType.JOIN_ROOM_SUCCESS, LocalDateTime.now());
+        MessageHeader header = new MessageHeader(MessageType.CHAT_ROOM_ENTER_SUCCESS, LocalDateTime.now());
 
         MessagePayload payload = new MessagePayload();
         payload.getData().put(MessageKey.RESULT, "ok");
