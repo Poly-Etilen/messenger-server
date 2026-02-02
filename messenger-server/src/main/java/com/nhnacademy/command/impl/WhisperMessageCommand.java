@@ -2,6 +2,7 @@ package com.nhnacademy.command.impl;
 
 import com.nhnacademy.annotation.LoginRequired;
 import com.nhnacademy.command.Command;
+import com.nhnacademy.constant.MessageKey;
 import com.nhnacademy.context.SessionHolder;
 import com.nhnacademy.domain.Header.MessageHeader;
 import com.nhnacademy.domain.Header.MessageType;
@@ -11,6 +12,7 @@ import com.nhnacademy.exception.UserNotFoundException;
 import com.nhnacademy.manager.SessionManager;
 import com.nhnacademy.session.ClientSession;
 import com.nhnacademy.util.MessageCodec;
+import com.nhnacademy.util.PayloadExtractor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
@@ -24,8 +26,8 @@ public class WhisperMessageCommand implements Command {
     public void execute(Message request) {
         ClientSession session = SessionHolder.get();
         String senderId = session.getUserId();
-        String receiverId = (String) request.getPayload().getData().get("receiverId");
-        String messageContent = (String) request.getPayload().getData().get("message");
+        String receiverId = PayloadExtractor.getRequired(request, MessageKey.RECEIVER_ID);
+        String messageContent = PayloadExtractor.getRequired(request, MessageKey.MESSAGE);
 
         ClientSession receiverSession = SessionManager.getInstance().getSession(receiverId);
 

@@ -2,6 +2,7 @@ package com.nhnacademy.session;
 
 import com.nhnacademy.annotation.LoginRequired;
 import com.nhnacademy.command.Command;
+import com.nhnacademy.command.CommandFactory;
 import com.nhnacademy.command.impl.*;
 import com.nhnacademy.context.SessionHolder;
 import com.nhnacademy.domain.Header.MessageHeader;
@@ -34,23 +35,11 @@ public class ClientSession implements Runnable{
     @Setter
     private String currentRoomId;
 
-    private final Map<MessageType, Command> commandMap = new HashMap<>();
+    private final Map<MessageType, Command> commandMap;
 
     public  ClientSession(Socket socket) {
         this.socket = socket;
-        initializeCommands();
-    }
-
-    private void initializeCommands() {
-        commandMap.put(MessageType.LOGIN, new LoginCommand());
-        commandMap.put(MessageType.CREATE_ROOM, new CreateRoomCommand());
-        commandMap.put(MessageType.ROOM_LIST, new ListRoomCommand());
-        commandMap.put(MessageType.JOIN_ROOM, new JoinRoomCommand());
-        commandMap.put(MessageType.LOGOUT, new LogoutCommand());
-        commandMap.put(MessageType.ROOM_USER_LIST, new RoomUserListCommand());
-        commandMap.put(MessageType.CHAT_MESSAGE, new SendMessageCommand());
-        commandMap.put(MessageType.WHISPER_MESSAGE, new WhisperMessageCommand());
-        commandMap.put(MessageType.MESSAGE_HISTORY, new MessageHistoryCommand());
+        this.commandMap = new CommandFactory().createCommandMap();
     }
 
     public OutputStream getOutputStream() throws IOException {
@@ -133,7 +122,7 @@ public class ClientSession implements Runnable{
         sendMessage(new Message("0", header, payload));
     }
 
-    private void sendMessage(Message message) {
+    public void sendMessage(Message message) {
         try {
             MessageCodec.sendMessage(socket.getOutputStream(), message);
         } catch (IOException e) {

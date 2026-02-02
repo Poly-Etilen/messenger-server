@@ -20,7 +20,7 @@ public class RoomManagementTest extends ServerTestSupport{
         CreateRoomCommand command = new CreateRoomCommand();
         Message message = createMessage(MessageType.CREATE_ROOM, Map.of("roomName", "Study Room"));
 
-        command.execute(session, message);
+        command.execute(message);
 
         Assertions.assertEquals(1, ChatRoomManager.getInstance().getAllRooms().size());
         ChatRoom room = ChatRoomManager.getInstance().getAllRooms().get(0);
@@ -36,7 +36,7 @@ public class RoomManagementTest extends ServerTestSupport{
         ListRoomCommand command = new ListRoomCommand();
         Message req = createMessage(MessageType.ROOM_LIST, Map.of());
 
-        command.execute(session, req);
+        command.execute(req);
 
         Assertions.assertTrue(out.size() > 0, "방 목록 데이터가 전송되어야 함");
     }

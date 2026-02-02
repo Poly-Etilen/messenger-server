@@ -43,7 +43,7 @@ public class MessagingTest extends ServerTestSupport{
                 "message", "Hello World!"
         ));
 
-        command.execute(session, message);
+        command.execute(message);
         Assertions.assertTrue(receiverOut.size() > 0, "상대방에게 메시지가 전송되어야 합니다.");
         Assertions.assertTrue(out.size() > 0, "본인에게 전송 성공 응답이 와야 합니다.");
     }
@@ -68,7 +68,7 @@ public class MessagingTest extends ServerTestSupport{
                 "message", " Secret Message"
         ));
 
-        command.execute(session, message);
+        command.execute(message);
 
         Assertions.assertTrue(receiverOut.size() > 0, "수신자에게 귓속말이 전달되어야 합니다.");
         Assertions.assertTrue(out.size() > 0, "발신자에게 성공 응답이 와야 합니다.");
@@ -83,7 +83,7 @@ public class MessagingTest extends ServerTestSupport{
                 "message", "Hello World!"
         ));
 
-        command.execute(session, request);
+        command.execute(request);
 
         Assertions.assertEquals(0, out.size(), "존재하지 않는 방에는 메시지를 보낼 수 없습니다.");
     }
