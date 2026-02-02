@@ -16,6 +16,7 @@ import javafx.stage.Stage;
 import lombok.Setter;
 
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -27,6 +28,7 @@ public class ClientGUI extends Application implements View {
 
     private Stage primaryStage;
     private ClientEventHandler eventHandler;
+    private final Map<String, String> roomNameToId = new HashMap<>();
     ListView<String> roomListView;
     ObservableList<String> roomItems;
 
@@ -60,8 +62,8 @@ public class ClientGUI extends Application implements View {
         Button loginButton = new Button("로그인");
         loginButton.setMinWidth(200);
 
-        idField.setOnAction(e -> eventHandler.onLoginClicked(idField.getText(),passwordField.getText()));
-        passwordField.setOnAction(e -> eventHandler.onLoginClicked(idField.getText(),passwordField.getText()));
+        idField.setOnAction(e -> eventHandler.onLoginClicked(idField.getText(), passwordField.getText()));
+        passwordField.setOnAction(e -> eventHandler.onLoginClicked(idField.getText(), passwordField.getText()));
         loginButton.setOnAction(e -> eventHandler.onLoginClicked(idField.getText(), passwordField.getText()));
 
         layout.getChildren().addAll(label, idField, passwordField, loginButton);
@@ -88,7 +90,14 @@ public class ClientGUI extends Application implements View {
 
 
         // 클릭 시 방에 입장
-        roomListView.setOnMouseClicked(e -> eventHandler.onRoomClicked(roomListView));
+        roomListView.setOnMouseClicked(e -> {
+            String selectedRoom =
+                    roomListView.getSelectionModel().getSelectedItem();
+            if (selectedRoom != null) {
+                this.roomName = selectedRoom;
+                eventHandler.onRoomClicked(selectedRoom);
+            }
+        });
 
         //클릭 시 방생성 창등장
         createRoomBtn.setOnAction(e -> createRoom());
@@ -117,7 +126,7 @@ public class ClientGUI extends Application implements View {
         BorderPane topBar = new BorderPane();
         topBar.setPadding(new Insets(10, 10, 10, 10));
 
-        Label userLabel = new Label("접속자: " +  currentUser);
+        Label userLabel = new Label("접속자: " + currentUser);
 
         Button exitButton = new Button("나가기");
 
@@ -148,15 +157,14 @@ public class ClientGUI extends Application implements View {
         TextField textField = new TextField();
         textField.setPromptText("내용을 입력해 주세요");
         layout.setBottom(textField);
-        textField.setOnAction(e ->{
+        textField.setOnAction(e -> {
             String message = textField.getText();
             textField.clear();
             chatLog.appendText(message + "\n");
-            String sendMessage = currentUser + " : " +message;
+            String sendMessage = currentUser + " : " + message;
             eventHandler.sendBroadCastMessage(sendMessage);
 
         });
-
 
 
         Scene scene = new Scene(layout, 800, 1000);
@@ -182,9 +190,9 @@ public class ClientGUI extends Application implements View {
 
         okBtn.setOnAction(e -> logoutStage.close());
 
-        layout.getChildren().addAll(label,okBtn);
+        layout.getChildren().addAll(label, okBtn);
 
-        Scene scene = new Scene(layout,300,200);
+        Scene scene = new Scene(layout, 300, 200);
         logoutStage.setScene(scene);
         logoutStage.show();
 
@@ -195,12 +203,18 @@ public class ClientGUI extends Application implements View {
     public void updateRoomList(List<Map<String, Object>> rooms) {
 
         roomItems.clear();
+        roomNameToId.clear();
 
         for (Map<String, Object> room : rooms) {
-            roomItems.add((String) room.get("roomname"));
+            String roomId = (String) room.get("roomId");
+            String roomName = (String) room.get("roomName");
+
+            roomItems.add(roomName);
+            roomNameToId.put(roomName, roomId);
         }
 
         roomListView.setItems(roomItems);
+
     }
 
     @Override
@@ -224,18 +238,18 @@ public class ClientGUI extends Application implements View {
         Button okBtn = new Button("확인");
 
         //방제목 입력후 엔터나 확인버튼 클릭시 방생성
-        roomNameField.setOnAction(e ->{
+        roomNameField.setOnAction(e -> {
             this.roomName = roomNameField.getText();
-            eventHandler.handleCreateRoom(logoutStage,roomName);
+            eventHandler.handleCreateRoom(logoutStage, roomName);
         });
         okBtn.setOnAction(e -> {
             this.roomName = roomNameField.getText();
-            eventHandler.handleCreateRoom(logoutStage,roomName);
+            eventHandler.handleCreateRoom(logoutStage, roomName);
         });
 
-        layout.getChildren().addAll(label,roomNameField,okBtn);
+        layout.getChildren().addAll(label, roomNameField, okBtn);
 
-        Scene scene = new Scene(layout,300,200);
+        Scene scene = new Scene(layout, 300, 200);
         logoutStage.setScene(scene);
         logoutStage.show();
     }
@@ -243,12 +257,16 @@ public class ClientGUI extends Application implements View {
 
     @Override
     public void showError(String title, String content) {
-        Platform.runLater(()->{
+        Platform.runLater(() -> {
             Alert alert = new Alert(Alert.AlertType.ERROR);
             alert.setTitle(title);
             alert.setHeaderText(null);
             alert.setContentText(content);
             alert.showAndWait();
         });
+    }
+
+    public String getRoomIdByName(String roomName) {
+        return roomNameToId.get(roomName);
     }
 }
