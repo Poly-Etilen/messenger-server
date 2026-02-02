@@ -58,7 +58,7 @@ public class LeaveRoomCommand implements Command {
     }
 
     private void sendSuccessResponse(ClientSession session) {
-        MessageHeader header = new MessageHeader(MessageType.LEAVE_ROOM_SUCCESS, LocalDateTime.now());
+        MessageHeader header = new MessageHeader(MessageType.CHAT_ROOM_EXIT_SUCCESS, LocalDateTime.now());
         MessagePayload payload = new MessagePayload();
         payload.getData().put(MessageKey.RESULT, "ok");
 

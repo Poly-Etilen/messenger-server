@@ -14,6 +14,12 @@ public class MessageKey {
     public static final String RESULT = "result";
     public static final String REASON = "reason";
     public static final String ROOM_LIST = "roomList";
+    public static final String USER_LIST = "userList";
     public static final String HISTORY = "history";
     public static final String TIMESTAMP = "timestamp";
+
+    // 파일 전송
+    public static final String FILE_NAME = "fileName";
+    public static final String FILE_SIZE = "fileSize";
+    public static final String FILE_DATA = "fileData";
 }

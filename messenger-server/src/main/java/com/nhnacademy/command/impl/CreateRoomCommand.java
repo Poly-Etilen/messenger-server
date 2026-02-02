@@ -33,12 +33,12 @@ public class CreateRoomCommand implements Command {
         }
 
         ChatRoom newRoom = ChatRoomManager.getInstance().createRoom(roomName);
-        MessageHeader header = new MessageHeader(MessageType.CREATE_ROOM_SUCCESS, LocalDateTime.now());
+        MessageHeader header = new MessageHeader(MessageType.CHAT_ROOM_CREATE_SUCCESS, LocalDateTime.now());
 
         MessagePayload payload = new MessagePayload();
-        payload.getData().put("result", "ok");
-        payload.getData().put("roomId", newRoom.getId());
-        payload.getData().put("roomName", newRoom.getName());
+        payload.getData().put(MessageKey.RESULT, "ok");
+        payload.getData().put(MessageKey.ROOM_ID, newRoom.getId());
+        payload.getData().put(MessageKey.ROOM_NAME, newRoom.getName());
 
         Message response = new Message("0", header, payload);
 

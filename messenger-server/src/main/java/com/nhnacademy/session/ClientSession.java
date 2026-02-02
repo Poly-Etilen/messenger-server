@@ -3,7 +3,7 @@ package com.nhnacademy.session;
 import com.nhnacademy.annotation.LoginRequired;
 import com.nhnacademy.command.Command;
 import com.nhnacademy.command.CommandFactory;
-import com.nhnacademy.command.impl.*;
+import com.nhnacademy.constant.MessageKey;
 import com.nhnacademy.context.SessionHolder;
 import com.nhnacademy.domain.Header.MessageHeader;
 import com.nhnacademy.domain.Header.MessageType;
@@ -21,7 +21,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.time.LocalDateTime;
-import java.util.HashMap;
 import java.util.Map;
 
 @Getter
@@ -108,8 +107,8 @@ public class ClientSession implements Runnable{
 
         MessageHeader header = new MessageHeader(e.getErrorType(), LocalDateTime.now());
         MessagePayload payload = new MessagePayload();
-        payload.getData().put("result", "fail");
-        payload.getData().put("reason", e.getMessage());
+        payload.getData().put(MessageKey.RESULT, "fail");
+        payload.getData().put(MessageKey.REASON, e.getMessage());
 
         Message response = new Message("0", header, payload);
         sendMessage(response);
@@ -118,7 +117,7 @@ public class ClientSession implements Runnable{
     private void sendError(String message) {
         MessageHeader header = new MessageHeader(MessageType.ERROR, LocalDateTime.now());
         MessagePayload payload = new MessagePayload();
-        payload.getData().put("reason", message);
+        payload.getData().put(MessageKey.MESSAGE, message);
         sendMessage(new Message("0", header, payload));
     }
 

@@ -2,6 +2,7 @@ package com.nhnacademy.command.impl;
 
 import com.nhnacademy.annotation.LoginRequired;
 import com.nhnacademy.command.Command;
+import com.nhnacademy.constant.MessageKey;
 import com.nhnacademy.context.SessionHolder;
 import com.nhnacademy.domain.Header.MessageHeader;
 import com.nhnacademy.domain.Header.MessageType;
@@ -41,7 +42,7 @@ public class LogoutCommand implements Command {
 
         MessageHeader header = new MessageHeader(MessageType.LOGOUT_SUCCESS, LocalDateTime.now());
         MessagePayload payload = new MessagePayload();
-        payload.getData().put("result", "ok");
+        payload.getData().put(MessageKey.RESULT, "ok");
 
         Message message = new Message("0", header, payload);
 
