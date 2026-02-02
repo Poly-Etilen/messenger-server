@@ -10,4 +10,5 @@ public interface View {
     void logout();
     void showError(String title, String content);
     void updateRoomList(List<Map<String, Object>> rooms);
+    void createRoom();
 }
