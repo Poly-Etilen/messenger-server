@@ -16,10 +16,18 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.Map;
 
 @Slf4j
 public class LoginCommand implements Command {
+    private static final Map<String, String> userDatabase = new HashMap<>();
+
+    static {
+        userDatabase.put("marco", "nhnacademy123");
+        userDatabase.put("alice", "nhnacademy456");
+        userDatabase.put("bob", "nhnacademy789");
+    }
     @Override
     public void execute(Message request) {
         ClientSession session = SessionHolder.get();
@@ -80,6 +88,6 @@ public class LoginCommand implements Command {
     }
 
     private boolean authenticate(String userId, String password) {
-        return "marco".equals(userId) && "nhnacademy123".equals(password);
+        return userDatabase.containsKey(userId) && userDatabase.get(userId).equals(password);
     }
 }
