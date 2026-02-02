@@ -138,7 +138,13 @@ public class ClientEventHandler {
             case JOIN_ROOM_SUCCESS:
                 this.roomId = (String) data.get("roomId");
                 this.roomName = (String) data.get("roomName");
+                sendMemberListRequest(roomId);
                 view.showEnterRoom();
+                break;
+            case ROOM_USER_LIST_RESPONSE:
+                roomId = (String) data.get("roomId");
+                List<String> userList = (List<String>) data.get("userList");
+                view.updateMemberList(userList,roomId);
                 break;
             case LOGOUT:
             case LOGOUT_SUCCESS:
@@ -150,6 +156,13 @@ public class ClientEventHandler {
 
     }
 
+    public void sendMemberListRequest(String roomId){
+        MessageHeader header = new MessageHeader(MessageType.ROOM_USER_LIST,LocalDateTime.now());
+        MessagePayload payload = new MessagePayload();
+        payload.getData().put("roomId",roomId);
+        sendMessage(new Message("0",header,payload));
+
+    }
     public void handleCreateRoom(Stage createStage, String roomName) {
         MessageHeader header = new MessageHeader(MessageType.CREATE_ROOM, LocalDateTime.now());
         MessagePayload payload = new MessagePayload();
