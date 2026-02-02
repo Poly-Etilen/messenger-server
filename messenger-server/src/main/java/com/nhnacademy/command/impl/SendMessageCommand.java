@@ -35,6 +35,7 @@ public class SendMessageCommand implements Command {
 
         String senderId = session.getUserId();
         long messageId = System.currentTimeMillis();
+        room.addMessage(senderId,messageContent);
 
         broadcastMessage(room, senderId, messageContent);
 
@@ -54,7 +55,7 @@ public class SendMessageCommand implements Command {
             try {
                 MessageCodec.sendMessage(s.getSocket().getOutputStream(), broadcastMsg);
             } catch (IOException e) {
-                log.error("메시지 브래드캐스트 실해: target:{}", s.getUserId(), e);
+                log.error("메시지 브로드캐스트 실행: target:{}", s.getUserId(), e);
             }
         }
     }
