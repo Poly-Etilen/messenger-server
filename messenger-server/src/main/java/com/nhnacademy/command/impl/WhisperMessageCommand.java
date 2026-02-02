@@ -7,6 +7,7 @@ import com.nhnacademy.domain.Header.MessageHeader;
 import com.nhnacademy.domain.Header.MessageType;
 import com.nhnacademy.domain.Message;
 import com.nhnacademy.domain.payload.MessagePayload;
+import com.nhnacademy.exception.UserNotFoundException;
 import com.nhnacademy.manager.SessionManager;
 import com.nhnacademy.session.ClientSession;
 import com.nhnacademy.util.MessageCodec;
@@ -29,8 +30,7 @@ public class WhisperMessageCommand implements Command {
         ClientSession receiverSession = SessionManager.getInstance().getSession(receiverId);
 
         if (receiverSession == null) {
-            log.warn("귓속말 실패: 사용자 {}를 찾을 수 없음", receiverId);
-            return;
+            throw new UserNotFoundException(receiverId);
         }
 
         sendToReceiver(receiverSession, senderId, messageContent);
