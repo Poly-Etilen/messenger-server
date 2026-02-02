@@ -129,6 +129,8 @@ public class ClientGUI extends Application implements View {
     public void showEnterRoom() {
         BorderPane layout = new BorderPane();
 
+        ObservableList<String> memberItems = FXCollections.observableArrayList();
+        ListView<String> memberListView = new ListView<>(memberItems);
         // 상단 바(왼쪽 접속자명, 중앙 방제목, 오른쪽 나가기 버튼)
         BorderPane topBar = new BorderPane();
         topBar.setPadding(new Insets(10, 10, 10, 10));
@@ -167,8 +169,7 @@ public class ClientGUI extends Application implements View {
             String message = textField.getText();
             textField.clear();
             chatLog.appendText(message + "\n");
-            String sendMessage = currentUser + " : " + message;
-            eventHandler.sendBroadCastMessage(sendMessage);
+            eventHandler.sendBroadCastMessage(message);
 
         });
 

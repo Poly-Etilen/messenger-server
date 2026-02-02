@@ -54,10 +54,6 @@ public class RoomUserListCommand implements Command {
 
         try {
             MessageCodec.sendMessage(session.getSocket().getOutputStream(), response);
-            //임시 로그
-            for (String s : userList) {
-                log.debug("유저: {} ",s);
-            }
             log.info("방 멤버 목록 전송: room={}, requester={}", roomId, session.getUserId());
         } catch (IOException e) {
             log.error("전송 실패", e);

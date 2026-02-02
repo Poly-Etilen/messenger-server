@@ -60,9 +60,12 @@ public class ClientEventHandler {
     public void sendBroadCastMessage(String message) {
         MessageHeader header = new MessageHeader(MessageType.CHAT_MESSAGE, LocalDateTime.now());
         MessagePayload payload = new MessagePayload();
-        payload.getData().put("roomId", "1");
+        payload.getData().put("roomId", roomId);
+        payload.getData().put("senderId",myUserId);
         payload.getData().put("message", message);
-        //구현중
+
+        sendMessage(new Message("0",header,payload));
+
 
     }
 
@@ -140,10 +143,10 @@ public class ClientEventHandler {
                 this.roomId = (String) data.get("roomId");
                 this.roomName = (String) data.get("roomName");
                 view.showEnterRoom();
+                sendRoomListRequest();
                 sendMemberListRequest();
                 break;
             case LEAVE_ROOM_SUCCESS:
-                sendMemberListRequest();
                 sendRoomListRequest();
                 view.showRoomList();
                 break;
@@ -156,6 +159,10 @@ public class ClientEventHandler {
             case LOGOUT_SUCCESS:
                 view.logout();
                 break;
+            case CHAT_MESSAGE_SUCCESS:
+                String roomId = (String) data.get("roomId");
+                long messageId = (long) data.get("messageId");
+                log.debug("메세지 전송 성공 roomId: {}, messageId: {}",roomId,messageId);
         }
 
     }
@@ -179,9 +186,7 @@ public class ClientEventHandler {
         payload.getData().put("roomName",roomName);
         sendMessage(new Message("0", header, payload));
         createStage.close();
-        sendRoomListRequest();
-        view.showEnterRoom();
-        this.roomId = view.getRoomIdByName(roomName);
+
 
 
     }
