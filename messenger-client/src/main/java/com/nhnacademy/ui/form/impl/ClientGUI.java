@@ -16,11 +16,14 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
+@Slf4j
 public class ClientGUI extends Application implements View {
 
     @Setter
@@ -31,7 +34,11 @@ public class ClientGUI extends Application implements View {
     private ClientEventHandler eventHandler;
     private final Map<String, String> roomNameToId = new HashMap<>();
     ListView<String> roomListView;
-    ObservableList<String> roomItems;
+    ObservableList<String> roomItems;// ClientGUI 필드
+    private ListView<String> memberListView = new ListView<>();
+    private ObservableList<String> memberItems = FXCollections.observableArrayList();
+
+
 
     @Override
     public void start(Stage primaryStage) {
@@ -123,6 +130,8 @@ public class ClientGUI extends Application implements View {
     public void showEnterRoom() {
         BorderPane layout = new BorderPane();
 
+        ObservableList<String> memberItems = FXCollections.observableArrayList();
+        ListView<String> memberListView = new ListView<>(memberItems);
         // 상단 바(왼쪽 접속자명, 중앙 방제목, 오른쪽 나가기 버튼)
         BorderPane topBar = new BorderPane();
         topBar.setPadding(new Insets(10, 10, 10, 10));
@@ -150,8 +159,7 @@ public class ClientGUI extends Application implements View {
         layout.setCenter(chatLog);
 
         //사용자 리스트
-        ListView<String> memberListView = new ListView<>();
-        ObservableList<String> members;
+        memberListView.setItems(memberItems);
         layout.setRight(memberListView);
 
 
@@ -162,8 +170,7 @@ public class ClientGUI extends Application implements View {
             String message = textField.getText();
             textField.clear();
             chatLog.appendText(message + "\n");
-            String sendMessage = currentUser + " : " + message;
-            eventHandler.sendBroadCastMessage(sendMessage);
+            eventHandler.sendBroadCastMessage(message);
 
         });
 
@@ -218,6 +225,14 @@ public class ClientGUI extends Application implements View {
 
     }
 
+    public void updateMemberList(List<String> memberList) {
+        if(Objects.isNull(memberList) || memberList.isEmpty()){
+            return;
+        }
+        memberItems.setAll(memberList);
+    }
+
+
     @Override
     public void createRoom() {
         //방생성 새창 생성
@@ -241,11 +256,11 @@ public class ClientGUI extends Application implements View {
         //방제목 입력후 엔터나 확인버튼 클릭시 방생성
         roomNameField.setOnAction(e -> {
             this.roomName = roomNameField.getText();
-            eventHandler.handleCreateRoom(logoutStage, roomName);
+            eventHandler.handleCreateRoom(logoutStage,roomName);
         });
         okBtn.setOnAction(e -> {
             this.roomName = roomNameField.getText();
-            eventHandler.handleCreateRoom(logoutStage, roomName);
+            eventHandler.handleCreateRoom(logoutStage,roomName);
         });
 
         layout.getChildren().addAll(label, roomNameField, okBtn);
@@ -270,4 +285,6 @@ public class ClientGUI extends Application implements View {
     public String getRoomIdByName(String roomName) {
         return roomNameToId.get(roomName);
     }
+
+
 }

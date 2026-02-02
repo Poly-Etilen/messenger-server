@@ -9,7 +9,6 @@ import com.nhnacademy.util.MessageCodec;
 import javafx.application.Platform;
 import javafx.stage.Stage;
 import lombok.extern.slf4j.Slf4j;
-
 import java.io.IOException;
 import java.net.Socket;
 import java.time.LocalDateTime;
@@ -61,9 +60,12 @@ public class ClientEventHandler {
     public void sendBroadCastMessage(String message) {
         MessageHeader header = new MessageHeader(MessageType.CHAT_MESSAGE, LocalDateTime.now());
         MessagePayload payload = new MessagePayload();
-        payload.getData().put("roomId", "1");
+        payload.getData().put("roomId", roomId);
+        payload.getData().put("senderId",myUserId);
         payload.getData().put("message", message);
-        //구현중
+
+        sendMessage(new Message("0",header,payload));
+
 
     }
 
@@ -75,8 +77,7 @@ public class ClientEventHandler {
     }
 
     public void onExitRoomClicked() {
-        sendRoomListRequest();
-        view.showRoomList();
+        leaveRoomRequest();
     }
 
 
@@ -136,25 +137,58 @@ public class ClientEventHandler {
                 this.roomId = (String) data.get("roomId");
                 this.roomName = (String) data.get("roomName");
                 view.showEnterRoom();
+                sendMemberListRequest();
+                break;
+            case CHAT_ROOM_CREATE_SUCCESS:
+                this.roomId = (String) data.get("roomId");
+                this.roomName = (String) data.get("roomName");
+                view.showEnterRoom();
+                sendRoomListRequest();
+                sendMemberListRequest();
+                break;
+            case CHAT_ROOM_EXIT_SUCCESS:
+                sendRoomListRequest();
+                view.showRoomList();
+                break;
+            case USER_LIST_SUCCESS:
+                List<String> userList = (List<String>) data.get("userList");
+                view.updateMemberList(userList);
                 break;
             case LOGOUT:
             case LOGOUT_SUCCESS:
                 view.logout();
                 break;
-
-
+            case CHAT_MESSAGE_SUCCESS:
+                String roomId = (String) data.get("roomId");
+                long messageId = (long) data.get("messageId");
+                log.debug("메세지 전송 성공 roomId: {}, messageId: {}",roomId,messageId);
         }
 
     }
+    public void leaveRoomRequest(){
+        MessageHeader header = new MessageHeader(MessageType.CHAT_ROOM_EXIT,LocalDateTime.now());
+        MessagePayload payload = new MessagePayload();
+        payload.getData().put("roomId",roomId);
+        sendMessage(new Message("0",header,payload));
+    }
 
-    public void handleCreateRoom(Stage createStage, String roomName) {
+    public void sendMemberListRequest(){
+        MessageHeader header = new MessageHeader(MessageType.USER_LIST,LocalDateTime.now());
+        MessagePayload payload = new MessagePayload();
+        payload.getData().put("roomId",this.roomId);
+        sendMessage(new Message("0",header,payload));
+
+    }
+
+
+    public void handleCreateRoom(Stage createStage,String roomName) {
         MessageHeader header = new MessageHeader(MessageType.CHAT_ROOM_CREATE, LocalDateTime.now());
         MessagePayload payload = new MessagePayload();
-        payload.getData().put("roomName", roomName);
+        payload.getData().put("roomName",roomName);
         sendMessage(new Message("0", header, payload));
         createStage.close();
-        sendRoomListRequest();
-        view.showEnterRoom();
+
+
 
     }
 
