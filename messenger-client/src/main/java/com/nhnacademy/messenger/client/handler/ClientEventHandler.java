@@ -151,24 +151,27 @@ public class ClientEventHandler {
                 view.showRoomList();
                 break;
             case USER_LIST_SUCCESS:
-                List<String> userList = (List<String>) data.get("userList");
-                log.debug("유저 조회 성공");
-                log.debug("{}",userList);
-                view.updateMemberList(userList);
+                List<Map<String, Object>> rawUserList = (List<Map<String, Object>>) data.get("userList");
+                log.debug("서버 수신 유저 리스트: {}", rawUserList);
+
+                //userId만 추출
+                List<String> userIds = rawUserList.stream()
+                        .map(userMap -> (String) userMap.get("id")) // "id" 또는 "userId" 등 서버가 보내는 키값 확인
+                        .toList();
+
+                view.updateMemberList(userIds);
                 break;
             case LOGOUT:
             case LOGOUT_SUCCESS:
                 view.logout();
                 break;
             case CHAT_MESSAGE:
-                roomId = (String)data.get("roomId");
                 String senderId = (String)data.get("senderId");
                 String content = (String)data.get("message");
                 log.debug("메세지 수신 성공 roomId: {}, senderID: {}",roomId,senderId);
                 receiveMessage(content);
                 break;
             case CHAT_MESSAGE_SUCCESS:
-                roomId = (String) data.get("roomId");
                 long messageId = (long) data.get("messageId");
                 log.debug("메세지 전송 성공 roomId: {}, messageId: {}",roomId,messageId);
                 break;
@@ -231,4 +234,10 @@ public class ClientEventHandler {
         sendRoomListRequest(); // 기존에 작성하신 private 메서드 호출
     }
 
+    public void sendWhisperMessage(String targetId, String trim) {
+    }
+
+    public void sendChatHistoryRequest() {
+
+    }
 }

@@ -41,6 +41,20 @@ public class JoinRoomCommand implements Command {
 
         room.addSession(session);
         sendSuccess(session, room);
+        notifyjoinMember(room, session.getUserId());
+    }
+
+    private void notifyjoinMember(ChatRoom room, String userId) {
+        MessageHeader header = new MessageHeader(MessageType.CHAT_MESSAGE, LocalDateTime.now());
+        MessagePayload payload = new MessagePayload();
+        payload.getData().put(MessageKey.SENDER_ID, "System");
+        payload.getData().put(MessageKey.MESSAGE, userId + " 님이 입장하셨습니다.");
+
+        Message message = new Message("0", header, payload);
+
+        for (ClientSession member : room.getSessions()) {
+            member.sendMessage(message);
+        }
     }
 
     private void sendSuccess(ClientSession session, ChatRoom room) {

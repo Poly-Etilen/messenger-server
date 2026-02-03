@@ -36,8 +36,8 @@ public class ClientGUI extends Application implements View {
     private final Map<String, String> roomNameToId = new HashMap<>();
     ListView<String> roomListView;
     ObservableList<String> roomItems;// ClientGUI 필드
-    private ListView<String> memberListView = new ListView<>();
     private ObservableList<String> memberItems = FXCollections.observableArrayList();
+    private ListView<String> memberListView = new ListView<>(memberItems);
 
 
     @Override
@@ -132,7 +132,8 @@ public class ClientGUI extends Application implements View {
     public void showEnterRoom() {
         BorderPane layout = new BorderPane();
 
-        memberListView.setItems(memberItems);
+        //memberListView.setItems(memberItems);
+        //memberItems.clear();
         // 상단 바(왼쪽 접속자명, 중앙 방제목, 오른쪽 나가기 버튼)
         BorderPane topBar = new BorderPane();
         topBar.setPadding(new Insets(10, 10, 10, 10));
@@ -231,9 +232,14 @@ public class ClientGUI extends Application implements View {
     }
 
     public void updateMemberList(List<String> memberList) {
-        if (Objects.isNull(memberList) || memberList.isEmpty()) {
+        if (Objects.isNull(memberList)) {
             return;
         }
+        Platform.runLater(() -> {
+            memberItems.clear();
+            memberItems.addAll(memberList);
+            log.debug("이방 인원수 {}: ",memberList.size());
+        });
 
     }
 

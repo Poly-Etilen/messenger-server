@@ -6,6 +6,7 @@
 //public class UserListCommand implements ClientCommand {
 //    @Override
 //    public void execute(ClientEventHandler handler, String[] args) {
-//        handler.sendUserListRequest();
+//        handler.sendMemberListRequest();
 //    }
+//
 //}
