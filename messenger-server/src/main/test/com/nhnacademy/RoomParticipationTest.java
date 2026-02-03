@@ -24,6 +24,7 @@ public class RoomParticipationTest extends ServerTestSupport{
     void joinRoomTest() {
         ChatRoom room = ChatRoomManager.getInstance().createRoom("Game Room");
         JoinRoomCommand command = new JoinRoomCommand();
+        injectDependencies(command);
         Message message = createMessage(MessageType.CHAT_ROOM_ENTER, Map.of("roomId", room.getId()));
 
         command.execute(message);
@@ -36,6 +37,7 @@ public class RoomParticipationTest extends ServerTestSupport{
     @DisplayName("방 입장 실패: 존재하지 않는 방 ID 입력 시 실패 응답 전송")
     void joinRoomFailTest() {
         JoinRoomCommand command = new JoinRoomCommand();
+        injectDependencies(command);
         Message message = createMessage(MessageType.CHAT_ROOM_ENTER, Map.of("roomId", "invalid"));
         Assertions.assertThrows(RoomNotFoundException.class, () -> command.execute(message));
     }
@@ -46,11 +48,12 @@ public class RoomParticipationTest extends ServerTestSupport{
         session.setUserId("marco");
         SessionManager.getInstance().addSession("marco", session);
 
-        ClientSession otherSession = new ClientSession(Mockito.mock(Socket.class));
-        otherSession.setUserId("nhn");
-        SessionManager.getInstance().addSession("nhn", otherSession);
+        ClientSession otherSession = new ClientSession(Mockito.mock(Socket.class), null);
+        otherSession.setUserId("alice");
+        SessionManager.getInstance().addSession("alice", otherSession);
 
         UserListCommand command = new UserListCommand();
+        injectDependencies(command);
         Message message = createMessage(MessageType.USER_LIST, Map.of());
 
         command.execute(message);
@@ -59,6 +62,7 @@ public class RoomParticipationTest extends ServerTestSupport{
 
         Assertions.assertTrue(out.size() > 0, "응답이 전송되어야 합니다.");
         Assertions.assertTrue(response.contains("marco"), "응답에 'marco'가 포함되어야 합니다.");
-        Assertions.assertTrue(response.contains("nhn"), "응답에 'nhn'이 포함되어야 합니다.");
+        Assertions.assertTrue(response.contains("alice"), "응답에 'alice'이 포함되어야 합니다.");
+        Assertions.assertTrue(response.contains("bob"), "응답에 'bob'이 포함되어야 합니다.");
     }
 }

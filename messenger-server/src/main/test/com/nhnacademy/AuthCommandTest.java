@@ -19,12 +19,14 @@ public class AuthCommandTest extends ServerTestSupport{
     @DisplayName("로그인 성공: 세션 메니저 등록 및 UserID 설정 확인")
     void loginSuccessTest(){
         LoginCommand loginCommand = new LoginCommand();
+        injectDependencies(loginCommand);
+
         Message request = createMessage(MessageType.LOGIN, Map.of(
                 "userId", "marco",
                 "password", "nhnacademy123"
         ));
 
-        loginCommand.execute(session, request);
+        loginCommand.execute(request);
 
         Assertions.assertTrue(SessionManager.getInstance().isLoggedIn("marco"));
         Assertions.assertEquals("marco", session.getUserId());
@@ -35,11 +37,13 @@ public class AuthCommandTest extends ServerTestSupport{
     @DisplayName("로그인 실패: 비밀번호 불일치")
     void loginFailTest(){
         LoginCommand loginCommand = new LoginCommand();
+        injectDependencies(loginCommand);
+
         Message request = createMessage(MessageType.LOGIN, Map.of(
                 "userId", "marco",
                 "password", "wrongPassword"
         ));
-        loginCommand.execute(session, request);
+        loginCommand.execute(request);
         Assertions.assertFalse(SessionManager.getInstance().isLoggedIn("marco"));
         Assertions.assertNull(session.getUserId());
     }
@@ -55,9 +59,10 @@ public class AuthCommandTest extends ServerTestSupport{
         session.setCurrentRoomId(room.getId());
 
         LogoutCommand logoutCommand = new LogoutCommand();
+        injectDependencies(logoutCommand);
         Message request = createMessage(MessageType.LOGOUT, Map.of());
 
-        logoutCommand.execute(session, request);
+        logoutCommand.execute(request);
 
         Assertions.assertFalse(SessionManager.getInstance().isLoggedIn("marco"));
         Assertions.assertFalse(room.getSessions().contains(session));

@@ -1,5 +1,6 @@
 package com.nhnacademy.messenger.client.handler;
 
+import com.nhnacademy.constant.MessageKey;
 import com.nhnacademy.domain.Header.MessageHeader;
 import com.nhnacademy.domain.Header.MessageType;
 import com.nhnacademy.domain.Message;
@@ -210,9 +211,62 @@ public class ClientEventHandler {
                 content = (String) data.get("content");
                 receiveMessage("Whisper [" + senderId + "] : " + content);
                 break;
-
+            case PUSH_NEW_MESSAGE:
+                content = (String) data.get(MessageKey.CONTENT);
+                view.writeMessage(content);
+                break;
+            case PUSH_ROOM_ENTER:
+                String enterUser = (String) data.get(MessageKey.USER_NAME);
+                if (enterUser != null) {
+                    view.writeMessage("[알림] " + enterUser + " 님이 입장하셨습니다.");
+                }
+                roomMemberListRequest();
+                break;
+            case PUSH_ROOM_EXIT:
+                String exitUser = (String) data.get(MessageKey.USER_ID);
+                if (exitUser != null) {
+                    view.writeMessage("[알림] " + exitUser + " 님이 퇴장하셨습니다.");
+                }
+                roomMemberListRequest();
+                break;
         }
 
+    }
+
+    public void handleCommand(String commandLine) {
+        String[] parts = commandLine.split("\\s+", 3);
+        String command = parts[0];
+
+        switch (command) {
+            case "/help":
+            case "/도움말":
+                view.writeMessage("""
+                        [System] 명령어 목록:
+                        /whisper <아이디> <메시지>
+                        /history
+                        /exit
+                        """);
+                break;
+            case "/whisper":
+            case "/w":
+            case "/귓":
+                if (parts.length < 3) {
+                    view.writeMessage("[System] 사용법: /whisper <아이디> <메시지>");
+                } else {
+                    sendWhisperMessage(parts[1], parts[2]);
+                }
+                break;
+            case "/history":
+            case "/기록":
+                sendChatHistoryRequest();
+                break;
+            case "/exit":
+            case "/나가기":
+                onExitRoomClicked();
+                break;
+            default:
+                view.writeMessage("[System] 알 수 없는 명령어입니다: " + command);
+        }
     }
 
     private void receiveMessage(String content) {

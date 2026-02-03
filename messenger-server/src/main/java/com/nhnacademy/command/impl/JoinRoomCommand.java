@@ -52,12 +52,12 @@ public class JoinRoomCommand implements Command {
     }
 
     private void notifyEnterMember(ChatRoom room, String userId, String roomId) {
-        MessageHeader header = new MessageHeader(MessageType.CHAT_MESSAGE, LocalDateTime.now());
+        MessageHeader header = new MessageHeader(MessageType.PUSH_ROOM_ENTER, LocalDateTime.now());
         MessagePayload payload = new MessagePayload();
 
         payload.getData().put(MessageKey.ROOM_ID, roomId);
         payload.getData().put(MessageKey.SENDER_ID, "System");
-        payload.getData().put(MessageKey.MESSAGE, userId + " 님이 입장했습니다.");
+        payload.getData().put(MessageKey.USER_NAME, userId);
 
         Message message = new Message("0", header, payload);
 

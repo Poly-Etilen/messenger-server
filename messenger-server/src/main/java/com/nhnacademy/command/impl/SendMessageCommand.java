@@ -50,25 +50,26 @@ public class SendMessageCommand implements Command {
         long messageId = System.currentTimeMillis();
         room.addMessage(senderId,messageContent);
 
-        broadcastMessage(room, senderId, messageContent);
+        broadcastMessage(room, senderId, messageContent, messageId);
 
         sendSuccessResponse(session, roomId, messageId);
     }
 
-    private void broadcastMessage(ChatRoom room, String senderId, String Content) {
-        MessageHeader header = new MessageHeader(MessageType.CHAT_MESSAGE, LocalDateTime.now());
+    private void broadcastMessage(ChatRoom room, String senderId, String Content, long messageId) {
+        MessageHeader header = new MessageHeader(MessageType.PUSH_NEW_MESSAGE, LocalDateTime.now());
         MessagePayload payload = new MessagePayload();
+
         payload.getData().put(MessageKey.ROOM_ID, room.getId());
+        payload.getData().put(MessageKey.MESSAGE_ID, messageId);
         payload.getData().put(MessageKey.SENDER_ID, senderId);
-        payload.getData().put(MessageKey.MESSAGE, Content);
+        payload.getData().put(MessageKey.CONTENT, Content);
+        payload.getData().put(MessageKey.TYPE, "TEXT");
+        payload.getData().put(MessageKey.FILE_NAME, null);
+        payload.getData().put(MessageKey.FILE_SIZE, 0);
 
         Message broadcastMsg = new Message("0", header, payload);
 
-        log.debug("현재 방({}) 참여자 수: {}, 참여자 목록: {}",
-                room.getId(),
-                room.getSessions().size(),
-                room.getSessions().stream().map(ClientSession::getUserId).toList()
-        );
+        log.debug("브로드캐스트 [PUSH_NEW_MESSAGE]: 방({}), 발신자({})", room.getId(), senderId);
 
         for (ClientSession s : room.getSessions()) {
             try {

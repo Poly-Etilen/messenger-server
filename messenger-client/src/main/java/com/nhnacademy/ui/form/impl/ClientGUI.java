@@ -187,7 +187,6 @@ public class ClientGUI extends Application implements View {
     public void showEnterRoom() {
         BorderPane layout = new BorderPane();
 
-
         roomMemberItems.clear();
 
         // 상단 바(왼쪽 접속자명, 중앙 방제목, 오른쪽 나가기 버튼)
@@ -226,18 +225,15 @@ public class ClientGUI extends Application implements View {
         textField.setPromptText("내용을 입력해 주세요");
         layout.setBottom(textField);
         textField.setOnAction(e -> {
-            String message = textField.getText();
-            if(message.startsWith("/")){
-                eventHandler.executeCommand(message);
-                textField.clear();
-            }
-            else {
+            String message = textField.getText().trim();
+            if (message.isEmpty()) return;
+            textField.clear();
+            if (message.startsWith("/")) {
+                eventHandler.handleCommand(message);
+            } else {
                 eventHandler.sendBroadCastMessage("[" + currentUser + "] " + message);
-                textField.clear();
             }
-
         });
-
 
         Scene scene = new Scene(layout, 800, 1000);
         primaryStage.setScene(scene);
