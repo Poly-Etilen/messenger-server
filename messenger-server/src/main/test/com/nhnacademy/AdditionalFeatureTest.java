@@ -102,7 +102,7 @@ public class AdditionalFeatureTest extends ServerTestSupport{
     private ClientSession createMockSession(String userId, ByteArrayOutputStream outputStream) throws IOException {
         Socket mockSocket = Mockito.mock(Socket.class);
         when(mockSocket.getOutputStream()).thenReturn(outputStream);
-        ClientSession session = new ClientSession(mockSocket, null);
+        ClientSession session = new ClientSession(mockSocket, null, null);
         session.setUserId(userId);
         return session;
     }
