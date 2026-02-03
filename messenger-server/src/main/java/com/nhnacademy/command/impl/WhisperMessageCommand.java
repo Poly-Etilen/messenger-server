@@ -49,7 +49,7 @@ public class WhisperMessageCommand implements Command {
     private void sendToReceiver(ClientSession receiver, String senderId, String content) {
         MessageHeader header = new MessageHeader(MessageType.PRIVATE_MESSAGE_RECEIVE, LocalDateTime.now());
         MessagePayload payload = new MessagePayload();
-        payload.getData().put(MessageKey.RECEIVER_ID, senderId);
+        payload.getData().put(MessageKey.SENDER_ID, senderId);
         payload.getData().put("content", content);
 
         sendMessage(receiver, new Message("0", header, payload));

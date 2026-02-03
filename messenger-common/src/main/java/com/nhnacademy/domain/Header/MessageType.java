@@ -40,5 +40,9 @@ public enum MessageType {
 
     // 추가구현
     @JsonProperty("FILE-TRANSFER") FILE_TRANSFER,
-    @JsonProperty("FILE-TRANSFER-SUCCESS") FILE_TRANSFER_SUCCESS
+    @JsonProperty("FILE-TRANSFER-SUCCESS") FILE_TRANSFER_SUCCESS,
+
+    @JsonProperty("PUSH-NEW-MESSAGE") PUSH_NEW_MESSAGE,
+    @JsonProperty("PUSH-ROOM-ENTER") PUSH_ROOM_ENTER,
+    @JsonProperty("PUSH-ROOM-EXIT") PUSH_ROOM_EXIT
 }
