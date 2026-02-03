@@ -34,8 +34,8 @@ public class ClientGUI extends Application implements View {
     private Stage primaryStage;
     private ClientEventHandler eventHandler;
     private final Map<String, String> roomNameToId = new HashMap<>();
-    ListView<String> roomListView;
-    ObservableList<String> roomItems;// ClientGUI 필드
+    ObservableList<String> roomItems =  FXCollections.observableArrayList();
+    ListView<String> roomListView =  new ListView<>(roomItems);
     private ObservableList<String> memberItems = FXCollections.observableArrayList();
     private ListView<String> memberListView = new ListView<>(memberItems);
 
@@ -95,8 +95,6 @@ public class ClientGUI extends Application implements View {
         topBar.getChildren().addAll(userLabel, createRoomBtn,refreshBtn);
 
         // 중단 : 채팅방 리스트 (ListView 사용)
-        roomListView = new ListView<>();
-        roomItems = FXCollections.observableArrayList();
         roomListView.setItems(roomItems);
 
 
@@ -109,6 +107,7 @@ public class ClientGUI extends Application implements View {
                 eventHandler.onRoomClicked(selectedRoom);
             }
         });
+
         //클릭 시 방생성 창등장
         createRoomBtn.setOnAction(e -> createRoom());
 
@@ -145,9 +144,9 @@ public class ClientGUI extends Application implements View {
         //나가기 버튼(채팅방 목록으로 돌아가기)
         exitButton.setOnMouseClicked(e -> eventHandler.onExitRoomClicked());
 
-
         Label label = new Label("방제목: " + roomName);
         label.setStyle("-fx-font-size: 15px; -fx-font-weight: bold;");
+
         topBar.setLeft(userLabel);
         topBar.setCenter(label);
         topBar.setRight(exitButton);
@@ -155,6 +154,7 @@ public class ClientGUI extends Application implements View {
 
         layout.setTop(topBar);
 
+        //채팅 메세지창
         chatLog = new TextArea();
         chatLog.setEditable(false);
         chatLog.appendText("[System] 채팅방에 입장했습니다.\n");
@@ -164,7 +164,7 @@ public class ClientGUI extends Application implements View {
         memberListView.setItems(memberItems);
         layout.setRight(memberListView);
 
-
+        //메세지 입력창
         TextField textField = new TextField();
         textField.setPromptText("내용을 입력해 주세요");
         layout.setBottom(textField);
