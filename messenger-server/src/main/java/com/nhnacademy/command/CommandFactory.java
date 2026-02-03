@@ -20,6 +20,7 @@ public class CommandFactory {
         commandMap.put(MessageType.CHAT_MESSAGE_HISTORY, new MessageHistoryCommand());
         commandMap.put(MessageType.USER_LIST, new UserListCommand());
         commandMap.put(MessageType.FILE_TRANSFER, new FileTransferCommand());
+        commandMap.put(MessageType.CHAT_ROOM_USER_LIST, new ChatRoomUserListCommand());
 
         return commandMap;
     }

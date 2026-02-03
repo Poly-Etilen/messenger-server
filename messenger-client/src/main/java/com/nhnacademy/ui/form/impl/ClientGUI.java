@@ -132,8 +132,8 @@ public class ClientGUI extends Application implements View {
     public void showEnterRoom() {
         BorderPane layout = new BorderPane();
 
-        //memberListView.setItems(memberItems);
-        //memberItems.clear();
+
+        memberItems.clear();
         // 상단 바(왼쪽 접속자명, 중앙 방제목, 오른쪽 나가기 버튼)
         BorderPane topBar = new BorderPane();
         topBar.setPadding(new Insets(10, 10, 10, 10));

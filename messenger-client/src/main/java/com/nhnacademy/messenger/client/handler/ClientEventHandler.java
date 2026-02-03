@@ -120,7 +120,7 @@ public class ClientEventHandler {
                 log.info("로그인 성공");
                 view.setCurrentUser(myUserId);
                 view.showRoomList();
-                sendRoomListRequest();
+                roomListRequest();
                 break;
             case LOGIN_FAIL:
                 String reason = (String) data.get("reason");
@@ -137,29 +137,24 @@ public class ClientEventHandler {
                 this.roomId = (String) data.get("roomId");
                 this.roomName = (String) data.get("roomName");
                 view.showEnterRoom();
-                sendMemberListRequest();
+                roomMemberListRequest();
                 break;
             case CHAT_ROOM_CREATE_SUCCESS:
                 this.roomId = (String) data.get("roomId");
                 this.roomName = (String) data.get("roomName");
                 view.showEnterRoom();
-                sendRoomListRequest();
-                sendMemberListRequest();
+                roomListRequest();
+                roomMemberListRequest();
                 break;
             case CHAT_ROOM_EXIT_SUCCESS:
-                sendRoomListRequest();
+                roomListRequest();
                 view.showRoomList();
                 break;
-            case USER_LIST_SUCCESS:
-                List<Map<String, Object>> rawUserList = (List<Map<String, Object>>) data.get("userList");
-                log.debug("서버 수신 유저 리스트: {}", rawUserList);
-
-                //userId만 추출
-                List<String> userIds = rawUserList.stream()
-                        .map(userMap -> (String) userMap.get("id")) // "id" 또는 "userId" 등 서버가 보내는 키값 확인
-                        .toList();
-
-                view.updateMemberList(userIds);
+            case CHAT_ROOM_USER_LIST_SUCCESS:
+                List<Map<String, Object>> roomUserList = (List<Map<String, Object>>) data.get("userList");
+                log.debug("서버 수신 유저 리스트: {}", roomUserList);
+                List<String> roomUserIds = (List<String>) data.get("userList");
+                view.updateMemberList(roomUserIds);
                 break;
             case LOGOUT:
             case LOGOUT_SUCCESS:
@@ -170,6 +165,9 @@ public class ClientEventHandler {
                 String content = (String)data.get("message");
                 log.debug("메세지 수신 성공 roomId: {}, senderID: {}",roomId,senderId);
                 receiveMessage(content);
+                if("System".equals(senderId)){
+                    roomMemberListRequest();
+                }
                 break;
             case CHAT_MESSAGE_SUCCESS:
                 long messageId = (long) data.get("messageId");
@@ -192,8 +190,8 @@ public class ClientEventHandler {
         sendMessage(new Message("0",header,payload));
     }
 
-    public void sendMemberListRequest(){
-        MessageHeader header = new MessageHeader(MessageType.USER_LIST,LocalDateTime.now());
+    public void roomMemberListRequest(){
+        MessageHeader header = new MessageHeader(MessageType.CHAT_ROOM_USER_LIST,LocalDateTime.now());
         MessagePayload payload = new MessagePayload();
         payload.getData().put("roomId",this.roomId);
         sendMessage(new Message("0",header,payload));
@@ -212,7 +210,7 @@ public class ClientEventHandler {
 
     }
 
-    private void sendRoomListRequest() {
+    private void roomListRequest() {
         MessageHeader header = new MessageHeader(MessageType.CHAT_ROOM_LIST, LocalDateTime.now());
         MessagePayload payload = new MessagePayload();
         sendMessage(new Message("0", header, payload));
@@ -231,7 +229,7 @@ public class ClientEventHandler {
 
     public void onRefreshClicked() {
         log.info("방 목록 새로고침 요청");
-        sendRoomListRequest(); // 기존에 작성하신 private 메서드 호출
+        roomListRequest(); // 기존에 작성하신 private 메서드 호출
     }
 
     public void sendWhisperMessage(String targetId, String trim) {

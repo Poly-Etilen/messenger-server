@@ -36,7 +36,7 @@ public class LeaveRoomCommand implements Command {
         ChatRoom room = ChatRoomManager.getInstance().getRoom(roomId);
         if (room != null) {
             room.removeSession(session);
-            notifyLeaveMember(room, session.getUserId());
+            notifyLeaveMember(room, session.getUserId(), roomId);
         }
         session.setCurrentRoomId(null);
 
@@ -44,9 +44,11 @@ public class LeaveRoomCommand implements Command {
         log.info("방 나가기 완료: user={}, room={}", session.getUserId(), roomId);
     }
 
-    private void notifyLeaveMember(ChatRoom room, String userId) {
+    private void notifyLeaveMember(ChatRoom room, String userId, String roomId) {
         MessageHeader header = new MessageHeader(MessageType.CHAT_MESSAGE, LocalDateTime.now());
         MessagePayload payload = new MessagePayload();
+
+        payload.getData().put(MessageKey.ROOM_ID, roomId);
         payload.getData().put(MessageKey.SENDER_ID, "System");
         payload.getData().put(MessageKey.MESSAGE, userId + " 님이 퇴장하셨습니다.");
 
