@@ -227,8 +227,14 @@ public class ClientGUI extends Application implements View {
         layout.setBottom(textField);
         textField.setOnAction(e -> {
             String message = textField.getText();
-            textField.clear();
-            eventHandler.sendBroadCastMessage("[" + currentUser + "] " + message);
+            if(message.startsWith("/")){
+                eventHandler.executeCommand(message);
+                textField.clear();
+            }
+            else {
+                eventHandler.sendBroadCastMessage("[" + currentUser + "] " + message);
+                textField.clear();
+            }
 
         });
 
