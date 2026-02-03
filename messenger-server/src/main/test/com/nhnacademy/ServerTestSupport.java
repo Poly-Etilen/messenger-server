@@ -1,5 +1,6 @@
 package com.nhnacademy;
 
+import com.google.inject.Inject;
 import com.nhnacademy.context.SessionHolder;
 import com.nhnacademy.domain.Header.MessageHeader;
 import com.nhnacademy.domain.Header.MessageType;
@@ -7,14 +8,17 @@ import com.nhnacademy.domain.Message;
 import com.nhnacademy.domain.payload.MessagePayload;
 import com.nhnacademy.manager.ChatRoomManager;
 import com.nhnacademy.manager.SessionManager;
+import com.nhnacademy.repository.UserRepository;
 import com.nhnacademy.session.ClientSession;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.mockito.Mockito;
 
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.lang.reflect.Type;
 import java.net.Socket;
 import java.time.LocalDateTime;
 import java.util.Map;
@@ -26,14 +30,16 @@ public class ServerTestSupport {
     protected ClientSession session;
     protected ByteArrayOutputStream out;
     protected Socket socket;
+    protected UserRepository userRepository;
 
     @BeforeEach
     public void setup() throws IOException {
         socket = Mockito.mock(Socket.class);
         out = new ByteArrayOutputStream();
         when(socket.getOutputStream()).thenReturn(out);
-        session = new ClientSession(socket);
+        session = new ClientSession(socket, null);
         SessionHolder.set(session);
+        userRepository = new UserRepository();
     }
 
     @AfterEach
@@ -42,6 +48,27 @@ public class ServerTestSupport {
 
         resetSingleton(ChatRoomManager.getInstance(), "roomMaps");
         resetSingleton(SessionManager.getInstance(), "sessionMap");
+    }
+
+    protected void injectDependencies(Object command) {
+        try {
+            for (Field field : command.getClass().getDeclaredFields()) {
+                field.setAccessible(true);
+                if (field.isAnnotationPresent(Inject.class)) {
+                    field.setAccessible(true);
+
+                    if (field.getType() == ChatRoomManager.class) {
+                        field.set(command, ChatRoomManager.getInstance());
+                    } else if (field.getType() == SessionManager.class) {
+                        field.set(command, SessionManager.getInstance());
+                    } else if (field.getType() == UserRepository.class) {
+                        field.set(command, userRepository);
+                    }
+                }
+            }
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException("테스트 의존성 주입 실패: " + command.getClass().getSimpleName(), e);
+        }
     }
 
     protected void resetSingleton(Object instance, String fieldName) {

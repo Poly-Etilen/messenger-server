@@ -33,11 +33,12 @@ public class MessagingTest extends ServerTestSupport{
         ByteArrayOutputStream receiverOut = new ByteArrayOutputStream();
         when(receiverSocket.getOutputStream()).thenReturn(receiverOut);
 
-        ClientSession receiverSession = new ClientSession(receiverSocket);
+        ClientSession receiverSession = new ClientSession(receiverSocket, null);
         receiverSession.setUserId("receiver");
         room.addSession(receiverSession);
 
         SendMessageCommand command = new SendMessageCommand();
+        injectDependencies(command);
         Message message = createMessage(MessageType.CHAT_MESSAGE, Map.of(
                 "roomId", room.getId(),
                 "message", "Hello World!"
@@ -58,11 +59,12 @@ public class MessagingTest extends ServerTestSupport{
         ByteArrayOutputStream receiverOut = new ByteArrayOutputStream();
         when(receiverSocket.getOutputStream()).thenReturn(receiverOut);
 
-        ClientSession receiverSession = new ClientSession(receiverSocket);
+        ClientSession receiverSession = new ClientSession(receiverSocket, null);
         receiverSession.setUserId("receiver");
         SessionManager.getInstance().addSession("receiver", receiverSession);
 
         WhisperMessageCommand command = new WhisperMessageCommand();
+        injectDependencies(command);
         Message message = createMessage(MessageType.PRIVATE_MESSAGE, Map.of(
                 "receiverId", "receiver",
                 "message", " Secret Message"
@@ -78,6 +80,7 @@ public class MessagingTest extends ServerTestSupport{
     @DisplayName("존재하지 않는 방에 메시지 전송 시 실패 처리")
     void sendMessageFailTest() {
         SendMessageCommand command = new SendMessageCommand();
+        injectDependencies(command);
         Message request = createMessage(MessageType.CHAT_MESSAGE, Map.of(
                 "roomId", "invalid-room-id",
                 "message", "Hello World!"

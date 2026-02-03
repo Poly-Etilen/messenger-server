@@ -18,6 +18,7 @@ public class RoomManagementTest extends ServerTestSupport{
     @DisplayName("방 생성: 매니저에 방이 추가되어야 함")
     void createRoomTest() {
         CreateRoomCommand command = new CreateRoomCommand();
+        injectDependencies(command);
         Message message = createMessage(MessageType.CHAT_ROOM_CREATE, Map.of("roomName", "Study Room"));
 
         command.execute(message);
@@ -34,6 +35,7 @@ public class RoomManagementTest extends ServerTestSupport{
         ChatRoomManager.getInstance().createRoom("Room B");
 
         ListRoomCommand command = new ListRoomCommand();
+        injectDependencies(command);
         Message req = createMessage(MessageType.CHAT_ROOM_LIST, Map.of());
 
         command.execute(req);
