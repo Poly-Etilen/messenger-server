@@ -5,9 +5,6 @@ import com.nhnacademy.domain.Header.MessageHeader;
 import com.nhnacademy.domain.Header.MessageType;
 import com.nhnacademy.domain.Message;
 import com.nhnacademy.domain.payload.MessagePayload;
-import com.nhnacademy.messenger.client.command.Command;
-import com.nhnacademy.messenger.client.command.CommandFactory;
-import com.nhnacademy.messenger.client.command.CommandIntializer;
 import com.nhnacademy.ui.form.impl.ClientGUI;
 import com.nhnacademy.util.MessageCodec;
 import javafx.application.Platform;
@@ -29,12 +26,10 @@ public class ClientEventHandler {
     private String roomId;
     private String senderId;
     private String receiverId;
-    CommandFactory factory;
     String content;
 
     public ClientEventHandler(ClientGUI view) {
         this.view = view;
-        factory = CommandIntializer.init(this);
         connectToServer();
     }
 
@@ -264,6 +259,9 @@ public class ClientEventHandler {
             case "/나가기":
                 onExitRoomClicked();
                 break;
+            case "/logout":
+                onLogoutClicked();
+                break;
             default:
                 view.writeMessage("[System] 알 수 없는 명령어입니다: " + command);
         }
@@ -334,20 +332,6 @@ public class ClientEventHandler {
 
     }
 
-    public void executeCommand(String message) {
-
-        String[] arr = message.split(" ", 3);
-
-        Command command = factory.get(arr[0]);
-
-        if (command == null) {
-            view.writeMessage("알 수 없는 명령어입니다.");
-            return;
-        }
-        command.execute(arr);
-
-
-    }
 
 
 }
