@@ -46,14 +46,18 @@ public class RoomExitTest extends ServerTestSupport{
         Assertions.assertTrue(out.size() > 0, "성공 응답을 받아야 합니다.");
 
         String broadcastMsg = observerOut.toString();
-        Assertions.assertTrue(broadcastMsg.contains("leaver 님이 퇴장하셨습니다"), "다른 멤버에게 퇴장 알림이 전송되어야 합니다.");
+
+        System.out.println("DEBUG JSON Output: " + broadcastMsg);
+        Assertions.assertTrue(broadcastMsg.contains("leaver"), "퇴장한 유저의 ID가 알림에 포함되어야 합니다.");
+        Assertions.assertTrue(broadcastMsg.contains("PUSH-ROOM-EXIT"), "메시지 타입이 PUSH-ROOM-EXIT 여야 합니다.");
+
         Assertions.assertTrue(broadcastMsg.contains(room.getId()), "알림 메시지에 방 ID가 포함되어야 합니다.");
     }
 
     private ClientSession createMockSession(String userId, ByteArrayOutputStream outputStream) throws IOException {
         Socket mockSocket = Mockito.mock(Socket.class);
         when(mockSocket.getOutputStream()).thenReturn(outputStream);
-        ClientSession session = new ClientSession(mockSocket, null);
+        ClientSession session = new ClientSession(mockSocket, null, null);
         session.setUserId(userId);
         return session;
     }

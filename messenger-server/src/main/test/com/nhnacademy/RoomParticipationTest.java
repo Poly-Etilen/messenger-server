@@ -48,7 +48,7 @@ public class RoomParticipationTest extends ServerTestSupport{
         session.setUserId("marco");
         SessionManager.getInstance().addSession("marco", session);
 
-        ClientSession otherSession = new ClientSession(Mockito.mock(Socket.class), null);
+        ClientSession otherSession = new ClientSession(Mockito.mock(Socket.class), null, null);
         otherSession.setUserId("alice");
         SessionManager.getInstance().addSession("alice", otherSession);
 
