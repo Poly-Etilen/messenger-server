@@ -122,6 +122,7 @@ public class ClientEventHandler {
                 view.setCurrentUser(myUserId);
                 view.showRoomList();
                 roomListRequest();
+                memberListRequest();
                 break;
             case LOGIN_FAIL:
                 String reason = (String) data.get("reason");
@@ -151,11 +152,21 @@ public class ClientEventHandler {
                 roomListRequest();
                 view.showRoomList();
                 break;
+            case USER_LIST_SUCCESS:
+                List<Map<String,Object>> userListData = (List<Map<String, Object>>) data.get("userList");
+                view.updateMemberList(userListData);
+                for (Map<String, Object> userList : userListData) {
+                    String userId = (String)userList.get("id");
+                    log.debug(userId);
+                }
+
+
+                break;
             case CHAT_ROOM_USER_LIST_SUCCESS:
                 List<Map<String, Object>> roomUserList = (List<Map<String, Object>>) data.get("userList");
                 log.debug("서버 수신 유저 리스트: {}", roomUserList);
                 List<String> roomUserIds = (List<String>) data.get("userList");
-                view.updateMemberList(roomUserIds);
+                view.updateRoomMemberList(roomUserIds);
                 break;
             case LOGOUT:
             case LOGOUT_SUCCESS:
@@ -188,6 +199,12 @@ public class ClientEventHandler {
         MessageHeader header = new MessageHeader(MessageType.CHAT_ROOM_EXIT,LocalDateTime.now());
         MessagePayload payload = new MessagePayload();
         payload.getData().put("roomId",roomId);
+        sendMessage(new Message("0",header,payload));
+    }
+
+    public void memberListRequest(){
+        MessageHeader header = new MessageHeader(MessageType.USER_LIST,LocalDateTime.now());
+        MessagePayload payload = new MessagePayload();
         sendMessage(new Message("0",header,payload));
     }
 

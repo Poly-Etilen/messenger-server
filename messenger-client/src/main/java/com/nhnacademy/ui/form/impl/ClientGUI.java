@@ -10,9 +10,7 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import lombok.Setter;
@@ -34,10 +32,12 @@ public class ClientGUI extends Application implements View {
     private Stage primaryStage;
     private ClientEventHandler eventHandler;
     private final Map<String, String> roomNameToId = new HashMap<>();
-    ListView<String> roomListView;
-    ObservableList<String> roomItems;// ClientGUI 필드
-    private ObservableList<String> memberItems = FXCollections.observableArrayList();
-    private ListView<String> memberListView = new ListView<>(memberItems);
+    ObservableList<String> roomItems =  FXCollections.observableArrayList();
+    ListView<String> roomListView =  new ListView<>(roomItems);
+    ObservableList<String> memberItems = FXCollections.observableArrayList();
+    ListView<String> memberListView = new ListView<>(memberItems);
+    ObservableList<String> roomMemberItems = FXCollections.observableArrayList();
+    ListView<String> roomMemberListView = new ListView<>(roomMemberItems);
 
 
     @Override
@@ -90,13 +90,17 @@ public class ClientGUI extends Application implements View {
         Label userLabel = new Label("접속자: " + currentUser);
         Button createRoomBtn = new Button("방 만들기");
         Button refreshBtn = new Button("새로고침");
+
+        //빈공간 여백
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+        Label label = new Label("사용자 리스트");
+
         //클릭시 방목록 새로고침
         refreshBtn.setOnAction(e -> eventHandler.onRefreshClicked());
-        topBar.getChildren().addAll(userLabel, createRoomBtn,refreshBtn);
+        topBar.getChildren().addAll(userLabel, createRoomBtn,refreshBtn,spacer,label);
 
         // 중단 : 채팅방 리스트 (ListView 사용)
-        roomListView = new ListView<>();
-        roomItems = FXCollections.observableArrayList();
         roomListView.setItems(roomItems);
 
 
@@ -109,11 +113,17 @@ public class ClientGUI extends Application implements View {
                 eventHandler.onRoomClicked(selectedRoom);
             }
         });
+
         //클릭 시 방생성 창등장
         createRoomBtn.setOnAction(e -> createRoom());
 
         layout.setTop(topBar);
         layout.setCenter(roomListView);
+
+        //중단 오른쪽 : 현재 접속자 리스트 (ListView 사용)
+        memberListView.setItems(memberItems);
+        memberListView.setMaxWidth(100);
+        layout.setRight(memberListView);
 
         // 하단: 나가기 버튼(로그인 화면으로 복귀)
         Button logoutBtn = new Button("로그아웃");
@@ -133,7 +143,7 @@ public class ClientGUI extends Application implements View {
         BorderPane layout = new BorderPane();
 
 
-        memberItems.clear();
+        roomMemberItems.clear();
         // 상단 바(왼쪽 접속자명, 중앙 방제목, 오른쪽 나가기 버튼)
         BorderPane topBar = new BorderPane();
         topBar.setPadding(new Insets(10, 10, 10, 10));
@@ -145,9 +155,9 @@ public class ClientGUI extends Application implements View {
         //나가기 버튼(채팅방 목록으로 돌아가기)
         exitButton.setOnMouseClicked(e -> eventHandler.onExitRoomClicked());
 
-
         Label label = new Label("방제목: " + roomName);
         label.setStyle("-fx-font-size: 15px; -fx-font-weight: bold;");
+
         topBar.setLeft(userLabel);
         topBar.setCenter(label);
         topBar.setRight(exitButton);
@@ -155,16 +165,17 @@ public class ClientGUI extends Application implements View {
 
         layout.setTop(topBar);
 
+        //채팅 메세지창
         chatLog = new TextArea();
         chatLog.setEditable(false);
         chatLog.appendText("[System] 채팅방에 입장했습니다.\n");
         layout.setCenter(chatLog);
 
         //사용자 리스트
-        memberListView.setItems(memberItems);
-        layout.setRight(memberListView);
+        roomMemberListView.setItems(roomMemberItems);
+        layout.setRight(roomMemberListView);
 
-
+        //메세지 입력창
         TextField textField = new TextField();
         textField.setPromptText("내용을 입력해 주세요");
         layout.setBottom(textField);
@@ -231,7 +242,7 @@ public class ClientGUI extends Application implements View {
 
     }
 
-    public void updateMemberList(List<String> memberList) {
+    public void updateRoomMemberList(List<String> memberList) {
         if (Objects.isNull(memberList)) {
             return;
         }
@@ -260,7 +271,7 @@ public class ClientGUI extends Application implements View {
 
         Label label = new Label("방제목을 입력하세요");
         TextField roomNameField = new TextField();
-        roomNameField.setMaxWidth(200);
+        roomNameField.setMaxWidth(300);
 
         Button okBtn = new Button("확인");
 
@@ -298,4 +309,30 @@ public class ClientGUI extends Application implements View {
     }
 
 
+    public void updateMemberList(List<Map<String, Object>> userListData) {
+
+//        roomItems.clear();
+//        roomNameToId.clear();
+//
+//        for (Map<String, Object> room : rooms) {
+//            String roomId = (String) room.get("roomId");
+//            String roomName = (String) room.get("roomName");
+//
+//            roomItems.add(roomName);
+//            roomNameToId.put(roomName, roomId);
+//        }
+//
+//        roomListView.setItems(roomItems);
+
+        memberItems.clear();
+        for (Map<String, Object> userData : userListData) {
+            String userId = (String)userData.get("id");
+            boolean userOnline = (boolean)userData.get("online");
+
+            memberItems.add(userId + " : " + (userOnline ? "online" : "offline"));
+
+        }
+        memberListView.setItems(memberItems);
+
+    }
 }
