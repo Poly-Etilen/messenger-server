@@ -1,6 +1,7 @@
 package com.nhnacademy.command.impl;
 
 import ch.qos.logback.core.joran.action.TimestampAction;
+import com.nhnacademy.annotation.CommandMapping;
 import com.nhnacademy.command.Command;
 import com.nhnacademy.constant.MessageKey;
 import com.nhnacademy.context.SessionHolder;
@@ -21,6 +22,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Slf4j
+@CommandMapping(MessageType.CHAT_ROOM_USER_LIST)
 public class ChatRoomUserListCommand implements Command {
     @Override
     public void execute(Message request) {
