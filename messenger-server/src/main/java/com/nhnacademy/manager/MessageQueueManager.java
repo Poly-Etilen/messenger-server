@@ -58,27 +58,8 @@ public class MessageQueueManager {
     private void broadcastMessage(BroadcastMessage message) {
         ChatRoom room = message.getChatRoom();
 
-        MessageHeader header = new MessageHeader(MessageType.PUSH_NEW_MESSAGE, LocalDateTime.now());
-        MessagePayload payload = new MessagePayload();
-
-        payload.getData().put(MessageKey.ROOM_ID, room.getId());
-        payload.getData().put(MessageKey.MESSAGE_ID, message.getMessageId());
-        payload.getData().put(MessageKey.SENDER_ID, message.getSenderId());
-        payload.getData().put(MessageKey.CONTENT, message.getContent());
-        payload.getData().put(MessageKey.TYPE, "TEXT");
-        payload.getData().put(MessageKey.FILE_NAME, null);
-        payload.getData().put(MessageKey.FILE_SIZE, 0);
-
-        Message broadcastMsg = new Message("0", header, payload);
-
         log.debug("[Queue 처리] 방({}) 메시지 전송 시작 - 대기열 처리", room.getId());
 
-        for (ClientSession session : room.getSessions()) {
-            try {
-                MessageCodec.sendMessage(session.getSocket().getOutputStream(), broadcastMsg);
-            } catch (IOException e) {
-                log.error("전송 실패: target={}", session.getUserId(), e);
-            }
-        }
+        room.notifyObservers(message);
     }
 }

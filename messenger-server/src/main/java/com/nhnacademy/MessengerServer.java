@@ -31,7 +31,7 @@ public class MessengerServer {
                 try {
                     Socket clientSocket = socket.accept();
                     log.info("새로운 클라이언트 접속: {}", clientSocket.getInetAddress());
-                    ClientSession session = new ClientSession(clientSocket, commandMap);
+                    ClientSession session = new ClientSession(clientSocket, null, commandMap);
                     Thread sessionThread = new Thread(session);
                     sessionThread.start();
                 } catch (IOException e) {

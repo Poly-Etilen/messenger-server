@@ -11,6 +11,8 @@ import com.nhnacademy.domain.payload.MessagePayload;
 import com.nhnacademy.exception.MessengerException;
 import com.nhnacademy.exception.NotAuthorizedException;
 import com.nhnacademy.manager.SessionManager;
+import com.nhnacademy.model.BroadcastMessage;
+import com.nhnacademy.observer.MessageObserver;
 import com.nhnacademy.util.MessageCodec;
 import lombok.Getter;
 import lombok.Setter;
@@ -24,7 +26,7 @@ import java.util.Map;
 
 @Getter
 @Slf4j
-public class ClientSession implements Runnable{
+public class ClientSession implements Runnable, MessageObserver {
     private final Socket socket;
 
     @Setter
@@ -35,8 +37,9 @@ public class ClientSession implements Runnable{
 
     private final Map<MessageType, Command> commandMap;
 
-    public ClientSession(Socket socket, Map<MessageType, Command> commandMap) {
+    public ClientSession(Socket socket, String userId, Map<MessageType, Command> commandMap) {
         this.socket = socket;
+        this.userId = userId;
         this.commandMap = commandMap;
     }
 
@@ -125,6 +128,28 @@ public class ClientSession implements Runnable{
             MessageCodec.sendMessage(socket.getOutputStream(), message);
         } catch (IOException e) {
             log.error("응답 전송 실패", e);
+        }
+    }
+
+    @Override
+    public void onMessage(BroadcastMessage message) {
+        MessageHeader header = new MessageHeader(MessageType.PUSH_NEW_MESSAGE, LocalDateTime.now());
+        MessagePayload payload = new MessagePayload();
+
+        payload.getData().put(MessageKey.ROOM_ID, message.getChatRoom().getId());
+        payload.getData().put(MessageKey.MESSAGE_ID, message.getMessageId());
+        payload.getData().put(MessageKey.SENDER_ID, message.getSenderId());
+        payload.getData().put(MessageKey.CONTENT, message.getContent());
+        payload.getData().put(MessageKey.TYPE, "TEXT");
+        payload.getData().put(MessageKey.FILE_NAME, null);
+        payload.getData().put(MessageKey.FILE_SIZE, 0);
+
+        Message response = new Message("0", header, payload);
+
+        try {
+            MessageCodec.sendMessage(this.socket.getOutputStream(), response);
+        } catch (IOException e) {
+            log.error("메시지 전송 실패: target={}", this.userId, e);
         }
     }
 }
