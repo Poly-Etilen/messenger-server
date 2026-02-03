@@ -28,6 +28,7 @@ public class ClientEventHandler {
         connectToServer();
     }
 
+    //로그인 요청 전송
     public void onLoginClicked(String id, String password) {
         this.myUserId = id;
 
@@ -57,6 +58,7 @@ public class ClientEventHandler {
     }
 
 
+    //브로드 캐스트로 메세지 전송
     public void sendBroadCastMessage(String message) {
         MessageHeader header = new MessageHeader(MessageType.CHAT_MESSAGE, LocalDateTime.now());
         MessagePayload payload = new MessagePayload();
@@ -69,7 +71,6 @@ public class ClientEventHandler {
 
     }
 
-
     public void onLogoutClicked() {
         MessageHeader header = new MessageHeader(MessageType.LOGOUT, LocalDateTime.now());
         MessagePayload payload = new MessagePayload();
@@ -80,6 +81,10 @@ public class ClientEventHandler {
         leaveRoomRequest();
     }
 
+    public void onRefreshClicked() {
+        log.info("방 목록 새로고침 요청");
+        roomListRequest(); // 기존에 작성하신 private 메서드 호출
+    }
 
     private void connectToServer() {
         try {
@@ -113,45 +118,46 @@ public class ClientEventHandler {
         }
     }
 
+    //받은 메세지 처리
     private void handleMessage(MessageType type, Message message) {
         Map<String, Object> data = message.getPayload().getData();
         switch (type) {
-            case LOGIN_SUCCESS:
+            case LOGIN_SUCCESS: // 로그인 성공시 방 리스트화면으로 이동, 멤버 리스트, 채팅방 리스트 불러오기
                 log.info("로그인 성공");
                 view.setCurrentUser(myUserId);
                 view.showRoomList();
                 roomListRequest();
                 memberListRequest();
                 break;
-            case LOGIN_FAIL:
+            case LOGIN_FAIL: // 로그인 오류시 에러창 출력
                 String reason = (String) data.get("reason");
                 if (reason == null) {
                     reason = "로그인 실패";
                 }
                 view.showError("로그인 실패", reason);
                 break;
-            case CHAT_ROOM_LIST_SUCCESS:
+            case CHAT_ROOM_LIST_SUCCESS: // 채팅방 리스트를 불러옴
                 List<Map<String, Object>> rooms = (List<Map<String, Object>>) data.get("roomList");
                 view.updateRoomList(rooms);
                 break;
-            case CHAT_ROOM_ENTER_SUCCESS:
+            case CHAT_ROOM_ENTER_SUCCESS: // 채팅방 입장 성공시 채팅방으로 이동, 방에있는 멤버 리스트 불러오기
                 this.roomId = (String) data.get("roomId");
                 this.roomName = (String) data.get("roomName");
                 view.showEnterRoom();
                 roomMemberListRequest();
                 break;
-            case CHAT_ROOM_CREATE_SUCCESS:
+            case CHAT_ROOM_CREATE_SUCCESS: // 채팅방 생성 성공시 채팅방으로 이동, 방에있는 멤버 리스트 불러오기
                 this.roomId = (String) data.get("roomId");
                 this.roomName = (String) data.get("roomName");
                 view.showEnterRoom();
-                roomListRequest();
                 roomMemberListRequest();
                 break;
-            case CHAT_ROOM_EXIT_SUCCESS:
-                roomListRequest();
+            case CHAT_ROOM_EXIT_SUCCESS: // 채팅방 나가기 성공시 방 리스트 화면으로 이동후 멤버리스트, 채팅방 리스트 불러오기
                 view.showRoomList();
+                roomListRequest();
+                memberListRequest();
                 break;
-            case USER_LIST_SUCCESS:
+            case USER_LIST_SUCCESS: // 유저 리스트를 불러옴
                 List<Map<String,Object>> userListData = (List<Map<String, Object>>) data.get("userList");
                 view.updateMemberList(userListData);
                 for (Map<String, Object> userList : userListData) {
@@ -159,19 +165,20 @@ public class ClientEventHandler {
                     log.debug(userId);
                 }
                 break;
-            case CHAT_ROOM_USER_LIST_SUCCESS:
+            case CHAT_ROOM_USER_LIST_SUCCESS: // 내방에 있는 유저 리스트를 불러옴
+                if(!roomId.equals((String) data.get("roomId"))){
+                    log.debug("roomId가 동일하지 않습니다");
+                    break;
+                }
                 List<String> roomUserList = (List<String>) data.get("userList");
-
                 log.debug("서버 수신 유저 리스트: {}", roomUserList);
-
-
                 view.updateRoomMemberList(roomUserList);
                 break;
             case LOGOUT:
             case LOGOUT_SUCCESS:
                 view.logout();
                 break;
-            case CHAT_MESSAGE:
+            case CHAT_MESSAGE: // 상대방이 보낸 채팅 메세지 수신
                 String senderId = (String)data.get("senderId");
                 String content = (String)data.get("message");
                 log.debug("메세지 수신 성공 roomId: {}, senderID: {}",roomId,senderId);
@@ -180,7 +187,7 @@ public class ClientEventHandler {
                     roomMemberListRequest();
                 }
                 break;
-            case CHAT_MESSAGE_SUCCESS:
+            case CHAT_MESSAGE_SUCCESS: // 메세지 전송 성공시
                 long messageId = (long) data.get("messageId");
                 log.debug("메세지 전송 성공 roomId: {}, messageId: {}",roomId,messageId);
                 break;
@@ -190,24 +197,24 @@ public class ClientEventHandler {
     }
 
     private void receiveMessage(String content) {
-        view.writeMessage(content);
+        view.writeMessage(content); // 채팅메세지 UI화면에 추가
 
     }
 
-    public void leaveRoomRequest(){
+    public void leaveRoomRequest(){ // 방나가기 요청
         MessageHeader header = new MessageHeader(MessageType.CHAT_ROOM_EXIT,LocalDateTime.now());
         MessagePayload payload = new MessagePayload();
         payload.getData().put("roomId",roomId);
         sendMessage(new Message("0",header,payload));
     }
 
-    public void memberListRequest(){
+    public void memberListRequest(){ // 전체 멤버리스트 조회 요청
         MessageHeader header = new MessageHeader(MessageType.USER_LIST,LocalDateTime.now());
         MessagePayload payload = new MessagePayload();
         sendMessage(new Message("0",header,payload));
     }
 
-    public void roomMemberListRequest(){
+    public void roomMemberListRequest(){ // 현재 방에있는 멤버리스트 조회 요청
         MessageHeader header = new MessageHeader(MessageType.CHAT_ROOM_USER_LIST,LocalDateTime.now());
         MessagePayload payload = new MessagePayload();
         payload.getData().put("roomId",this.roomId);
@@ -216,7 +223,7 @@ public class ClientEventHandler {
     }
 
 
-    public void handleCreateRoom(Stage createStage,String roomName) {
+    public void createRoomRequest(Stage createStage, String roomName) { //방 생성 요청
         MessageHeader header = new MessageHeader(MessageType.CHAT_ROOM_CREATE, LocalDateTime.now());
         MessagePayload payload = new MessagePayload();
         payload.getData().put("roomName",roomName);
@@ -227,7 +234,7 @@ public class ClientEventHandler {
 
     }
 
-    private void roomListRequest() {
+    private void roomListRequest() { // 방리스트 조회 요청
         MessageHeader header = new MessageHeader(MessageType.CHAT_ROOM_LIST, LocalDateTime.now());
         MessagePayload payload = new MessagePayload();
         sendMessage(new Message("0", header, payload));
@@ -235,18 +242,13 @@ public class ClientEventHandler {
 
     }
 
-    private void sendMessage(Message message) {
+    private void sendMessage(Message message) { // 메세지를 서버로 전송
         try {
             MessageCodec.sendMessage(socket.getOutputStream(), message);
             log.debug("메세지 전송 {}", message.getHeader().getMessageType());
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-    }
-
-    public void onRefreshClicked() {
-        log.info("방 목록 새로고침 요청");
-        roomListRequest(); // 기존에 작성하신 private 메서드 호출
     }
 
     public void sendWhisperMessage(String targetId, String trim) {
