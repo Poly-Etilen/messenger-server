@@ -1,5 +1,6 @@
 package com.nhnacademy.command.impl;
 
+import com.google.inject.Inject;
 import com.nhnacademy.annotation.CommandMapping;
 import com.nhnacademy.annotation.LoginRequired;
 import com.nhnacademy.command.Command;
@@ -26,10 +27,14 @@ import java.util.Map;
 @LoginRequired
 @CommandMapping(MessageType.CHAT_ROOM_LIST)
 public class ListRoomCommand implements Command {
+
+    @Inject
+    private ChatRoomManager chatRoomManager;
+
     @Override
     public void execute(Message request) {
         ClientSession session = SessionHolder.get();
-        List<ChatRoom> rooms = ChatRoomManager.getInstance().getAllRooms();
+        List<ChatRoom> rooms = chatRoomManager.getAllRooms();
 
         List<Map<String, Object>> roomInfoList = new ArrayList<>();
         for (ChatRoom room : rooms) {

@@ -1,5 +1,6 @@
 package com.nhnacademy.command.impl;
 
+import com.google.inject.Inject;
 import com.nhnacademy.annotation.CommandMapping;
 import com.nhnacademy.annotation.LoginRequired;
 import com.nhnacademy.command.Command;
@@ -23,6 +24,9 @@ import java.time.LocalDateTime;
 public class FileTransferCommand implements Command {
     private static final long MAX_FILE_SIZE = 10L * 1024 * 1024;
 
+    @Inject
+    private ChatRoomManager chatRoomManager;
+
     @Override
     public void execute(Message request) {
         ClientSession session = SessionHolder.get();
@@ -39,7 +43,7 @@ public class FileTransferCommand implements Command {
             return;
         }
 
-        ChatRoom room = ChatRoomManager.getInstance().getRoom(roomId);
+        ChatRoom room = chatRoomManager.getRoom(roomId);
         if (room == null) {
             session.sendMessage(createErrorMessage("ROOM.NOT_FOUND", "참여 중인 방이 아닙니다."));
             return;

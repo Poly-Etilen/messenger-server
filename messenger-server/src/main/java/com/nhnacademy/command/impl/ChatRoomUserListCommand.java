@@ -1,6 +1,6 @@
 package com.nhnacademy.command.impl;
 
-import ch.qos.logback.core.joran.action.TimestampAction;
+import com.google.inject.Inject;
 import com.nhnacademy.annotation.CommandMapping;
 import com.nhnacademy.annotation.LoginRequired;
 import com.nhnacademy.command.Command;
@@ -27,13 +27,16 @@ import java.util.List;
 @CommandMapping(MessageType.CHAT_ROOM_USER_LIST)
 @LoginRequired
 public class ChatRoomUserListCommand implements Command {
+    @Inject
+    private ChatRoomManager chatRoomManager;
+
     @Override
     public void execute(Message request) {
         ClientSession session = SessionHolder.get();
 
         String roomId = PayloadExtractor.getRequired(request, MessageKey.ROOM_ID);
 
-        ChatRoom room = ChatRoomManager.getInstance().getRoom(roomId);
+        ChatRoom room = chatRoomManager.getRoom(roomId);
         if (room == null) {
             throw new RoomNotFoundException(roomId);
         }
