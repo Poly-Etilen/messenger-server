@@ -36,8 +36,8 @@ public class ClientGUI extends Application implements View {
     private final Map<String, String> roomNameToId = new HashMap<>();
     ObservableList<String> roomItems =  FXCollections.observableArrayList();
     ListView<String> roomListView =  new ListView<>(roomItems);
-    private ObservableList<String> memberItems = FXCollections.observableArrayList();
-    private ListView<String> memberListView = new ListView<>(memberItems);
+    private ObservableList<String> roomMemberItems = FXCollections.observableArrayList();
+    private ListView<String> roomMemberListView = new ListView<>(roomMemberItems);
 
 
     @Override
@@ -132,7 +132,7 @@ public class ClientGUI extends Application implements View {
         BorderPane layout = new BorderPane();
 
 
-        memberItems.clear();
+        roomMemberItems.clear();
         // 상단 바(왼쪽 접속자명, 중앙 방제목, 오른쪽 나가기 버튼)
         BorderPane topBar = new BorderPane();
         topBar.setPadding(new Insets(10, 10, 10, 10));
@@ -161,8 +161,8 @@ public class ClientGUI extends Application implements View {
         layout.setCenter(chatLog);
 
         //사용자 리스트
-        memberListView.setItems(memberItems);
-        layout.setRight(memberListView);
+        roomMemberListView.setItems(roomMemberItems);
+        layout.setRight(roomMemberListView);
 
         //메세지 입력창
         TextField textField = new TextField();
