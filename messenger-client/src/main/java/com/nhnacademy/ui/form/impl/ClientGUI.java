@@ -11,8 +11,11 @@ import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Circle;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import lombok.AllArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -34,8 +37,8 @@ public class ClientGUI extends Application implements View {
     private final Map<String, String> roomNameToId = new HashMap<>();
     ObservableList<String> roomItems =  FXCollections.observableArrayList();
     ListView<String> roomListView =  new ListView<>(roomItems);
-    ObservableList<String> memberItems = FXCollections.observableArrayList();
-    ListView<String> memberListView = new ListView<>(memberItems);
+    ObservableList<UserItem> memberItems = FXCollections.observableArrayList();
+    ListView<UserItem> memberListView = new ListView<>(memberItems);
     ObservableList<String> roomMemberItems = FXCollections.observableArrayList();
     ListView<String> roomMemberListView = new ListView<>(roomMemberItems);
 
@@ -122,7 +125,34 @@ public class ClientGUI extends Application implements View {
 
         //중단 오른쪽 : 현재 접속자 리스트 (ListView 사용)
         memberListView.setItems(memberItems);
-        memberListView.setMaxWidth(100);
+        memberListView.setMaxWidth(150);
+        memberListView.setCellFactory(listView -> new ListCell<UserItem>() {
+            @Override
+            protected void updateItem(UserItem item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setGraphic(null);
+                    setText(null);
+                } else {
+                    HBox hBox = new HBox(10);
+                    hBox.setAlignment(Pos.CENTER_LEFT);
+
+                    Circle statusDot = new Circle(4);
+                    if (item.online) {
+                        statusDot.setFill(Color.LIMEGREEN);
+                    } else  {
+                        statusDot.setFill(Color.LIGHTGRAY);
+                    }
+
+                    Label label = new Label(item.id);
+                    hBox.getChildren().addAll(statusDot, label);
+
+                    setGraphic(hBox);
+                    setText(null);
+                }
+            }
+        });
+
         layout.setRight(memberListView);
 
         // 하단: 나가기 버튼(로그인 화면으로 복귀)
@@ -247,8 +277,8 @@ public class ClientGUI extends Application implements View {
             return;
         }
         Platform.runLater(() -> {
-            memberItems.clear();
-            memberItems.addAll(memberList);
+            roomMemberItems.clear();
+            roomMemberItems.addAll(memberList);
             log.debug("이방 인원수 {}: ",memberList.size());
         });
 
@@ -310,29 +340,28 @@ public class ClientGUI extends Application implements View {
 
 
     public void updateMemberList(List<Map<String, Object>> userListData) {
-
-//        roomItems.clear();
-//        roomNameToId.clear();
-//
-//        for (Map<String, Object> room : rooms) {
-//            String roomId = (String) room.get("roomId");
-//            String roomName = (String) room.get("roomName");
-//
-//            roomItems.add(roomName);
-//            roomNameToId.put(roomName, roomId);
-//        }
-//
-//        roomListView.setItems(roomItems);
-
-        memberItems.clear();
-        for (Map<String, Object> userData : userListData) {
-            String userId = (String)userData.get("id");
-            boolean userOnline = (boolean)userData.get("online");
-
-            memberItems.add(userId + " : " + (userOnline ? "online" : "offline"));
-
+        if (userListData == null) {
+            return;
         }
-        memberListView.setItems(memberItems);
 
+        Platform.runLater(() -> {
+            memberItems.clear();
+            for (Map<String, Object> userData : userListData) {
+                Object idObj = userData.get("id");
+                Object onlineObj = userData.get("online");
+
+                if (idObj != null && onlineObj != null) {
+                    String userId = (String) idObj;
+                    boolean online = (boolean) onlineObj;
+                    memberItems.add(new UserItem(userId, online));
+                }
+            }
+        });
+    }
+
+    @AllArgsConstructor
+    public static class UserItem {
+        String id;
+        boolean online;
     }
 }
