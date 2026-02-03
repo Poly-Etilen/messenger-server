@@ -233,11 +233,7 @@ public class ClientGUI extends Application implements View {
             } else {
                 eventHandler.sendBroadCastMessage("[" + currentUser + "] " + message);
             }
-
-            Scene scene = new Scene(layout, 800, 1000);
-            primaryStage.setScene(scene);
         });
-
 
         Scene scene = new Scene(layout, 800, 1000);
         primaryStage.setScene(scene);
