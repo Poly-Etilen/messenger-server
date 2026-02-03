@@ -1,5 +1,6 @@
 package com.nhnacademy.command.impl;
 
+import com.nhnacademy.annotation.CommandMapping;
 import com.nhnacademy.command.Command;
 import com.nhnacademy.constant.MessageKey;
 import com.nhnacademy.context.SessionHolder;
@@ -20,6 +21,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Slf4j
+@CommandMapping(MessageType.LOGIN)
 public class LoginCommand implements Command {
     private static final Map<String, String> userDatabase = new HashMap<>();
 

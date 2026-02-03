@@ -1,6 +1,8 @@
 package com.nhnacademy.command.impl;
 
 import ch.qos.logback.core.joran.action.TimestampAction;
+import com.nhnacademy.annotation.CommandMapping;
+import com.nhnacademy.annotation.LoginRequired;
 import com.nhnacademy.command.Command;
 import com.nhnacademy.constant.MessageKey;
 import com.nhnacademy.context.SessionHolder;
@@ -8,6 +10,7 @@ import com.nhnacademy.domain.Header.MessageHeader;
 import com.nhnacademy.domain.Header.MessageType;
 import com.nhnacademy.domain.Message;
 import com.nhnacademy.domain.payload.MessagePayload;
+import com.nhnacademy.exception.NotAuthorizedException;
 import com.nhnacademy.exception.RoomNotFoundException;
 import com.nhnacademy.manager.ChatRoomManager;
 import com.nhnacademy.model.ChatRoom;
@@ -21,6 +24,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Slf4j
+@CommandMapping(MessageType.CHAT_ROOM_USER_LIST)
+@LoginRequired
 public class ChatRoomUserListCommand implements Command {
     @Override
     public void execute(Message request) {
@@ -31,6 +36,9 @@ public class ChatRoomUserListCommand implements Command {
         ChatRoom room = ChatRoomManager.getInstance().getRoom(roomId);
         if (room == null) {
             throw new RoomNotFoundException(roomId);
+        }
+        if (!room.getSessions().contains(session)) {
+            throw new NotAuthorizedException();
         }
 
         List<String> userList = room.getSessions().stream()

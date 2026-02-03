@@ -1,5 +1,6 @@
 package com.nhnacademy.command.impl;
 
+import com.nhnacademy.annotation.CommandMapping;
 import com.nhnacademy.annotation.LoginRequired;
 import com.nhnacademy.command.Command;
 import com.nhnacademy.constant.MessageKey;
@@ -20,6 +21,7 @@ import java.util.Map;
 
 @Slf4j
 @LoginRequired
+@CommandMapping(MessageType.USER_LIST)
 public class UserListCommand implements Command {
     @Override
     public void execute(Message request) {
