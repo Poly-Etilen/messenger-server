@@ -6,6 +6,7 @@ import com.google.inject.Key;
 import com.google.inject.TypeLiteral;
 import com.nhnacademy.command.Command;
 import com.nhnacademy.domain.Header.MessageType;
+import com.nhnacademy.manager.MessageQueueManager;
 import com.nhnacademy.module.MessengerModule;
 import com.nhnacademy.session.ClientSession;
 import lombok.AllArgsConstructor;
@@ -54,6 +55,8 @@ public class MessengerServer {
         }
 
         Injector injector = Guice.createInjector(new MessengerModule());
+        MessageQueueManager queueManager = injector.getInstance(MessageQueueManager.class);
+        queueManager.start();
 
         Map<MessageType, Command> commandMap = injector.getInstance(
                 Key.get(new TypeLiteral<Map<MessageType, Command>>() {})
