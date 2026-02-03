@@ -1,5 +1,6 @@
 package com.nhnacademy.command.impl;
 
+import com.nhnacademy.annotation.CommandMapping;
 import com.nhnacademy.annotation.LoginRequired;
 import com.nhnacademy.command.Command;
 import com.nhnacademy.constant.MessageKey;
@@ -18,6 +19,7 @@ import java.time.LocalDateTime;
 
 @Slf4j
 @LoginRequired
+@CommandMapping(MessageType.FILE_TRANSFER)
 public class FileTransferCommand implements Command {
     private static final long MAX_FILE_SIZE = 10L * 1024 * 1024;
 

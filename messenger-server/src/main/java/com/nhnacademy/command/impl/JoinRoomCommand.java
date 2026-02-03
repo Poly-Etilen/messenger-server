@@ -1,5 +1,6 @@
 package com.nhnacademy.command.impl;
 
+import com.nhnacademy.annotation.CommandMapping;
 import com.nhnacademy.annotation.LoginRequired;
 import com.nhnacademy.command.Command;
 import com.nhnacademy.constant.MessageKey;
@@ -22,6 +23,7 @@ import java.time.LocalDateTime;
 
 @Slf4j
 @LoginRequired
+@CommandMapping(MessageType.CHAT_ROOM_ENTER)
 public class JoinRoomCommand implements Command {
 
     @Override

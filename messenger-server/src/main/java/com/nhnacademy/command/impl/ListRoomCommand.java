@@ -1,5 +1,6 @@
 package com.nhnacademy.command.impl;
 
+import com.nhnacademy.annotation.CommandMapping;
 import com.nhnacademy.annotation.LoginRequired;
 import com.nhnacademy.command.Command;
 import com.nhnacademy.constant.MessageKey;
@@ -23,6 +24,7 @@ import java.util.Map;
 
 @Slf4j
 @LoginRequired
+@CommandMapping(MessageType.CHAT_ROOM_LIST)
 public class ListRoomCommand implements Command {
     @Override
     public void execute(Message request) {
