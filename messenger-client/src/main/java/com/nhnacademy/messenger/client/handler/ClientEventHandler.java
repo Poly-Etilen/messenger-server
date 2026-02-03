@@ -158,14 +158,14 @@ public class ClientEventHandler {
                     String userId = (String)userList.get("id");
                     log.debug(userId);
                 }
-
-
                 break;
             case CHAT_ROOM_USER_LIST_SUCCESS:
-                List<Map<String, Object>> roomUserList = (List<Map<String, Object>>) data.get("userList");
+                List<String> roomUserList = (List<String>) data.get("userList");
+
                 log.debug("서버 수신 유저 리스트: {}", roomUserList);
-                List<String> roomUserIds = (List<String>) data.get("userList");
-                view.updateRoomMemberList(roomUserIds);
+
+
+                view.updateRoomMemberList(roomUserList);
                 break;
             case LOGOUT:
             case LOGOUT_SUCCESS:

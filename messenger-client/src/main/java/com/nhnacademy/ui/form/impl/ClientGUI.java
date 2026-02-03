@@ -19,7 +19,6 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 @Slf4j
 public class ClientGUI extends Application implements View {
@@ -242,16 +241,18 @@ public class ClientGUI extends Application implements View {
 
     }
 
-    public void updateRoomMemberList(List<String> memberList) {
-        if (Objects.isNull(memberList)) {
+    public void updateRoomMemberList(List<String> roomMemberList) {
+        if (roomMemberList == null) {
             return;
         }
-        Platform.runLater(() -> {
-            memberItems.clear();
-            memberItems.addAll(memberList);
-            log.debug("이방 인원수 {}: ",memberList.size());
-        });
 
+        Platform.runLater(() -> {
+            roomMemberItems.clear();
+            roomMemberItems.addAll(roomMemberList);
+            roomMemberListView.setItems(roomMemberItems);
+
+            log.debug("이 방 인원수: {}", roomMemberList.size());
+        });
     }
 
 
@@ -310,19 +311,6 @@ public class ClientGUI extends Application implements View {
 
 
     public void updateMemberList(List<Map<String, Object>> userListData) {
-
-//        roomItems.clear();
-//        roomNameToId.clear();
-//
-//        for (Map<String, Object> room : rooms) {
-//            String roomId = (String) room.get("roomId");
-//            String roomName = (String) room.get("roomName");
-//
-//            roomItems.add(roomName);
-//            roomNameToId.put(roomName, roomId);
-//        }
-//
-//        roomListView.setItems(roomItems);
 
         memberItems.clear();
         for (Map<String, Object> userData : userListData) {
