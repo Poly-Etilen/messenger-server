@@ -52,12 +52,11 @@ public class LeaveRoomCommand implements Command {
     }
 
     private void notifyLeaveMember(ChatRoom room, String userId, String roomId) {
-        MessageHeader header = new MessageHeader(MessageType.CHAT_MESSAGE, LocalDateTime.now());
+        MessageHeader header = new MessageHeader(MessageType.PUSH_ROOM_EXIT, LocalDateTime.now());
         MessagePayload payload = new MessagePayload();
 
         payload.getData().put(MessageKey.ROOM_ID, roomId);
-        payload.getData().put(MessageKey.SENDER_ID, "System");
-        payload.getData().put(MessageKey.MESSAGE, userId + " 님이 퇴장하셨습니다.");
+        payload.getData().put(MessageKey.USER_ID, userId);
 
         Message message = new Message("0", header, payload);
 

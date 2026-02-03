@@ -22,4 +22,10 @@ public class MessageKey {
     public static final String FILE_NAME = "fileName";
     public static final String FILE_SIZE = "fileSize";
     public static final String FILE_DATA = "fileData";
+
+    // 실시간 알림
+    public static final String MESSAGE_ID = "messageId";
+    public static final String CONTENT = "content";
+    public static final String TYPE = "type";
+    public static final String USER_NAME = "userName";
 }

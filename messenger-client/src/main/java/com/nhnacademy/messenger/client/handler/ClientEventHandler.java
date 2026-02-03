@@ -1,5 +1,6 @@
 package com.nhnacademy.messenger.client.handler;
 
+import com.nhnacademy.constant.MessageKey;
 import com.nhnacademy.domain.Header.MessageHeader;
 import com.nhnacademy.domain.Header.MessageType;
 import com.nhnacademy.domain.Message;
@@ -193,7 +194,24 @@ public class ClientEventHandler {
                 long messageId = (long) data.get("messageId");
                 log.debug("메세지 전송 성공 roomId: {}, messageId: {}",roomId,messageId);
                 break;
-
+            case PUSH_NEW_MESSAGE:
+                content = (String) data.get(MessageKey.CONTENT);
+                view.writeMessage(content);
+                break;
+            case PUSH_ROOM_ENTER:
+                String enterUser = (String) data.get(MessageKey.USER_NAME);
+                if (enterUser != null) {
+                    view.writeMessage("[알림] " + enterUser + " 님이 입장하셨습니다.");
+                }
+                roomMemberListRequest();
+                break;
+            case PUSH_ROOM_EXIT:
+                String exitUser = (String) data.get(MessageKey.USER_ID);
+                if (exitUser != null) {
+                    view.writeMessage("[알림] " + exitUser + " 님이 퇴장하셨습니다.");
+                }
+                roomMemberListRequest();
+                break;
         }
 
     }
