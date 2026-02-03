@@ -2,7 +2,6 @@ package com.nhnacademy.session;
 
 import com.nhnacademy.annotation.LoginRequired;
 import com.nhnacademy.command.Command;
-import com.nhnacademy.command.CommandFactory;
 import com.nhnacademy.constant.MessageKey;
 import com.nhnacademy.context.SessionHolder;
 import com.nhnacademy.domain.Header.MessageHeader;
@@ -36,9 +35,9 @@ public class ClientSession implements Runnable{
 
     private final Map<MessageType, Command> commandMap;
 
-    public  ClientSession(Socket socket) {
+    public ClientSession(Socket socket, Map<MessageType, Command> commandMap) {
         this.socket = socket;
-        this.commandMap = new CommandFactory().createCommandMap();
+        this.commandMap = commandMap;
     }
 
     public OutputStream getOutputStream() throws IOException {
