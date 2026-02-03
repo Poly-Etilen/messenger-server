@@ -11,14 +11,18 @@ import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Circle;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import lombok.AllArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 @Slf4j
 public class ClientGUI extends Application implements View {
@@ -35,8 +39,8 @@ public class ClientGUI extends Application implements View {
     ObservableList<String> roomItems =  FXCollections.observableArrayList();
     ListView<String> roomListView =  new ListView<>(roomItems); //방목록 리스트
 
-    ObservableList<String> memberItems = FXCollections.observableArrayList();
-    ListView<String> memberListView = new ListView<>(memberItems); //전체 멤버 리스트
+    ObservableList<UserItem> memberItems = FXCollections.observableArrayList();
+    ListView<UserItem> memberListView = new ListView<>(memberItems); //전체 멤버 리스트
 
     ObservableList<String> roomMemberItems = FXCollections.observableArrayList();
     ListView<String> roomMemberListView = new ListView<>(roomMemberItems); //방 멤버 리스트
@@ -89,7 +93,7 @@ public class ClientGUI extends Application implements View {
         BorderPane layout = new BorderPane();
         layout.setPadding(new Insets(10));
 
-        // 상단 : 유저 정보 , 방생성버튼, 새로고침 버튼 배치
+        // 상단 : 유저 정보 , 방생성버튼, 새로고침 버튼
         HBox topBar = new HBox(10);
         topBar.setPadding(new Insets(10, 0, 10, 0));
         Label userLabel = new Label("접속자: " + currentUser);
@@ -127,7 +131,34 @@ public class ClientGUI extends Application implements View {
 
         // 중단 오른쪽 : 현재 접속자 리스트 (ListView 사용)
         memberListView.setItems(memberItems);
-        memberListView.setMaxWidth(100);
+        memberListView.setMaxWidth(150);
+        memberListView.setCellFactory(listView -> new ListCell<UserItem>() {
+            @Override
+            protected void updateItem(UserItem item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setGraphic(null);
+                    setText(null);
+                } else {
+                    HBox hBox = new HBox(10);
+                    hBox.setAlignment(Pos.CENTER_LEFT);
+
+                    Circle statusDot = new Circle(4);
+                    if (item.online) {
+                        statusDot.setFill(Color.LIMEGREEN);
+                    } else  {
+                        statusDot.setFill(Color.LIGHTGRAY);
+                    }
+
+                    Label label = new Label(item.id);
+                    hBox.getChildren().addAll(statusDot, label);
+
+                    setGraphic(hBox);
+                    setText(null);
+                }
+            }
+        });
+
         layout.setRight(memberListView);
 
         // 하단: 로그아웃 버튼
@@ -251,18 +282,17 @@ public class ClientGUI extends Application implements View {
 
     }
 
-    public void updateRoomMemberList(List<String> roomMemberList) {
-        if (roomMemberList == null) {
+    public void updateRoomMemberList(List<String> memberList) {
+        if (Objects.isNull(memberList)) {
             return;
         }
 
         Platform.runLater(() -> {
             roomMemberItems.clear();
-            roomMemberItems.addAll(roomMemberList);
-            roomMemberListView.setItems(roomMemberItems);
-
-            log.debug("이 방 인원수: {}", roomMemberList.size());
+            roomMemberItems.addAll(memberList);
+            log.debug("이방 인원수 {}: ",memberList.size());
         });
+
     }
 
 
@@ -321,16 +351,28 @@ public class ClientGUI extends Application implements View {
 
 
     public void updateMemberList(List<Map<String, Object>> userListData) {
-
-        memberItems.clear();
-        for (Map<String, Object> userData : userListData) {
-            String userId = (String)userData.get("id");
-            boolean userOnline = (boolean)userData.get("online");
-
-            memberItems.add(userId + " : " + (userOnline ? "online" : "offline"));
-
+        if (userListData == null) {
+            return;
         }
-        memberListView.setItems(memberItems);
 
+        Platform.runLater(() -> {
+            memberItems.clear();
+            for (Map<String, Object> userData : userListData) {
+                Object idObj = userData.get("id");
+                Object onlineObj = userData.get("online");
+
+                if (idObj != null && onlineObj != null) {
+                    String userId = (String) idObj;
+                    boolean online = (boolean) onlineObj;
+                    memberItems.add(new UserItem(userId, online));
+                }
+            }
+        });
+    }
+
+    @AllArgsConstructor
+    public static class UserItem {
+        String id;
+        boolean online;
     }
 }

@@ -1,5 +1,6 @@
 package com.nhnacademy.command.impl;
 
+import com.google.inject.Inject;
 import com.nhnacademy.annotation.CommandMapping;
 import com.nhnacademy.annotation.LoginRequired;
 import com.nhnacademy.command.Command;
@@ -27,11 +28,14 @@ import java.util.Map;
 @LoginRequired
 @CommandMapping(MessageType.CHAT_MESSAGE_HISTORY)
 public class MessageHistoryCommand implements Command {
+    @Inject
+    private ChatRoomManager chatRoomManager;
+
     @Override
     public void execute(Message request) {
         ClientSession session = SessionHolder.get();
         String roomId = PayloadExtractor.getRequired(request, MessageKey.ROOM_ID);
-        ChatRoom room = ChatRoomManager.getInstance().getRoom(roomId);
+        ChatRoom room = chatRoomManager.getRoom(roomId);
 
         if (room == null) {
             log.error("기록 조회 실패: 존재하지 않는 방 ({})", roomId);

@@ -1,5 +1,6 @@
 package com.nhnacademy.command.impl;
 
+import com.google.inject.Inject;
 import com.nhnacademy.annotation.CommandMapping;
 import com.nhnacademy.annotation.LoginRequired;
 import com.nhnacademy.command.Command;
@@ -9,33 +10,38 @@ import com.nhnacademy.domain.Header.MessageHeader;
 import com.nhnacademy.domain.Header.MessageType;
 import com.nhnacademy.domain.Message;
 import com.nhnacademy.domain.payload.MessagePayload;
+import com.nhnacademy.manager.ChatRoomManager;
 import com.nhnacademy.manager.SessionManager;
+import com.nhnacademy.repository.UserRepository;
 import com.nhnacademy.session.ClientSession;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Slf4j
 @LoginRequired
 @CommandMapping(MessageType.USER_LIST)
 public class UserListCommand implements Command {
+    @Inject
+    private SessionManager sessionManager;
+    @Inject
+    private UserRepository userRepository;
+
     @Override
     public void execute(Message request) {
         ClientSession session = SessionHolder.get();
-        List<ClientSession> allSessions = SessionManager.getInstance().getAllSessions();
+        Set<String> allUserIds = userRepository.getAllUserIds();
 
         List<Map<String, Object>> userListData = new ArrayList<>();
-        for (ClientSession member : allSessions) {
+        for (String userId : allUserIds) {
             Map<String, Object> userMap = new HashMap<>();
-            String userId = member.getUserId();
+
+            boolean isOnline = sessionManager.isLoggedIn(userId);
 
             userMap.put("id", userId);
             userMap.put("name", userId);
-            userMap.put("online", true);
+            userMap.put("online", isOnline);
 
             userListData.add(userMap);
         }

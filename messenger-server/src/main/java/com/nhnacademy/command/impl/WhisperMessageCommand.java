@@ -1,5 +1,6 @@
 package com.nhnacademy.command.impl;
 
+import com.google.inject.Inject;
 import com.nhnacademy.annotation.CommandMapping;
 import com.nhnacademy.annotation.LoginRequired;
 import com.nhnacademy.command.Command;
@@ -24,6 +25,9 @@ import java.time.LocalDateTime;
 @CommandMapping(MessageType.PRIVATE_MESSAGE)
 public class WhisperMessageCommand implements Command {
 
+    @Inject
+    private SessionManager sessionManager;
+
     @Override
     public void execute(Message request) {
         ClientSession session = SessionHolder.get();
@@ -31,7 +35,7 @@ public class WhisperMessageCommand implements Command {
         String receiverId = PayloadExtractor.getRequired(request, MessageKey.RECEIVER_ID);
         String messageContent = PayloadExtractor.getRequired(request, MessageKey.MESSAGE);
 
-        ClientSession receiverSession = SessionManager.getInstance().getSession(receiverId);
+        ClientSession receiverSession = sessionManager.getSession(receiverId);
 
         if (receiverSession == null) {
             throw new UserNotFoundException(receiverId);

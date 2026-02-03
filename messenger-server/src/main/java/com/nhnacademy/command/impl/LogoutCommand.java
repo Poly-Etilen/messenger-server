@@ -1,5 +1,6 @@
 package com.nhnacademy.command.impl;
 
+import com.google.inject.Inject;
 import com.nhnacademy.annotation.CommandMapping;
 import com.nhnacademy.annotation.LoginRequired;
 import com.nhnacademy.command.Command;
@@ -23,6 +24,11 @@ import java.time.LocalDateTime;
 @LoginRequired
 @CommandMapping(MessageType.LOGOUT)
 public class LogoutCommand implements Command {
+    @Inject
+    private ChatRoomManager chatRoomManager;
+    @Inject
+    private SessionManager sessionManager;
+
     @Override
     public void execute(Message request) {
         ClientSession session = SessionHolder.get();
@@ -30,7 +36,7 @@ public class LogoutCommand implements Command {
 
         String currentRoomId = session.getCurrentRoomId();
         if (currentRoomId != null) {
-            ChatRoom room = ChatRoomManager.getInstance().getRoom(currentRoomId);
+            ChatRoom room = chatRoomManager.getRoom(currentRoomId);
             if (room != null) {
                 room.removeSession(session);
                 log.info("채팅방 퇴장 처리: room={}, user={}", currentRoomId, userId);
@@ -39,7 +45,7 @@ public class LogoutCommand implements Command {
         }
 
         if (userId != null) {
-            SessionManager.getInstance().removeSession(userId);
+            sessionManager.removeSession(userId);
         }
 
         MessageHeader header = new MessageHeader(MessageType.LOGOUT_SUCCESS, LocalDateTime.now());
