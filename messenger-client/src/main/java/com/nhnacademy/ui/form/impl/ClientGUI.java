@@ -34,13 +34,16 @@ public class ClientGUI extends Application implements View {
 
     private Stage primaryStage;
     private ClientEventHandler eventHandler;
-    private final Map<String, String> roomNameToId = new HashMap<>();
+    private final Map<String, String> roomNameToId = new HashMap<>(); //room 이름과 id 저장한 map
+
     ObservableList<String> roomItems =  FXCollections.observableArrayList();
-    ListView<String> roomListView =  new ListView<>(roomItems);
+    ListView<String> roomListView =  new ListView<>(roomItems); //방목록 리스트
+
     ObservableList<UserItem> memberItems = FXCollections.observableArrayList();
-    ListView<UserItem> memberListView = new ListView<>(memberItems);
+    ListView<UserItem> memberListView = new ListView<>(memberItems); //전체 멤버 리스트
+
     ObservableList<String> roomMemberItems = FXCollections.observableArrayList();
-    ListView<String> roomMemberListView = new ListView<>(roomMemberItems);
+    ListView<String> roomMemberListView = new ListView<>(roomMemberItems); //방 멤버 리스트
 
 
     @Override
@@ -48,6 +51,13 @@ public class ClientGUI extends Application implements View {
         this.primaryStage = primaryStage;
         this.eventHandler = new ClientEventHandler(this);
         primaryStage.setTitle("NHN Academy Chatting Program");
+
+        //창닫기시 로그아웃되는 기능 추가
+        primaryStage.setOnCloseRequest(event -> {
+            log.info("창이 닫혔습니다. 로그아웃 합니다");
+            eventHandler.onLogoutClicked();
+
+        });
         mainView();
         primaryStage.show();
     }
@@ -61,18 +71,21 @@ public class ClientGUI extends Application implements View {
 
         Label label = new Label("NHN Academy Chat");
 
+        //아이디 입력칸
         TextField idField = new TextField();
         idField.setPromptText("아이디");
         idField.setMaxWidth(200);
 
-
+        //패스워드 입력칸
         PasswordField passwordField = new PasswordField();
         passwordField.setPromptText("패스워드");
         passwordField.setMaxWidth(200);
 
+        //로그인 버튼
         Button loginButton = new Button("로그인");
         loginButton.setMinWidth(200);
 
+        //엔터시 로그인 시도
         idField.setOnAction(e -> eventHandler.onLoginClicked(idField.getText(), passwordField.getText()));
         passwordField.setOnAction(e -> eventHandler.onLoginClicked(idField.getText(), passwordField.getText()));
         loginButton.setOnAction(e -> eventHandler.onLoginClicked(idField.getText(), passwordField.getText()));
@@ -87,19 +100,19 @@ public class ClientGUI extends Application implements View {
         BorderPane layout = new BorderPane();
         layout.setPadding(new Insets(10));
 
-        // 상단 : 유저 정보 및 방 생성 버튼
+        // 상단 : 유저 정보 , 방생성버튼, 새로고침 버튼
         HBox topBar = new HBox(10);
         topBar.setPadding(new Insets(10, 0, 10, 0));
         Label userLabel = new Label("접속자: " + currentUser);
         Button createRoomBtn = new Button("방 만들기");
         Button refreshBtn = new Button("새로고침");
 
-        //빈공간 여백
+        // 빈공간 여백
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
         Label label = new Label("사용자 리스트");
 
-        //클릭시 방목록 새로고침
+        // 클릭시 방목록 새로고침
         refreshBtn.setOnAction(e -> eventHandler.onRefreshClicked());
         topBar.getChildren().addAll(userLabel, createRoomBtn,refreshBtn,spacer,label);
 
@@ -117,13 +130,13 @@ public class ClientGUI extends Application implements View {
             }
         });
 
-        //클릭 시 방생성 창등장
+        // 클릭 시 방생성 창등장
         createRoomBtn.setOnAction(e -> createRoom());
 
         layout.setTop(topBar);
         layout.setCenter(roomListView);
 
-        //중단 오른쪽 : 현재 접속자 리스트 (ListView 사용)
+        // 중단 오른쪽 : 현재 접속자 리스트 (ListView 사용)
         memberListView.setItems(memberItems);
         memberListView.setMaxWidth(150);
         memberListView.setCellFactory(listView -> new ListCell<UserItem>() {
@@ -155,8 +168,10 @@ public class ClientGUI extends Application implements View {
 
         layout.setRight(memberListView);
 
-        // 하단: 나가기 버튼(로그인 화면으로 복귀)
+        // 하단: 로그아웃 버튼
         Button logoutBtn = new Button("로그아웃");
+
+        // 클릭시 로그아웃
         logoutBtn.setOnAction(e -> {
             logout();
             eventHandler.onLogoutClicked();
@@ -174,6 +189,7 @@ public class ClientGUI extends Application implements View {
 
 
         roomMemberItems.clear();
+
         // 상단 바(왼쪽 접속자명, 중앙 방제목, 오른쪽 나가기 버튼)
         BorderPane topBar = new BorderPane();
         topBar.setPadding(new Insets(10, 10, 10, 10));
@@ -182,7 +198,7 @@ public class ClientGUI extends Application implements View {
 
         Button exitButton = new Button("나가기");
 
-        //나가기 버튼(채팅방 목록으로 돌아가기)
+        // 클릭시 방 나가기
         exitButton.setOnMouseClicked(e -> eventHandler.onExitRoomClicked());
 
         Label label = new Label("방제목: " + roomName);
@@ -195,17 +211,17 @@ public class ClientGUI extends Application implements View {
 
         layout.setTop(topBar);
 
-        //채팅 메세지창
+        // 채팅 메세지창
         chatLog = new TextArea();
         chatLog.setEditable(false);
         chatLog.appendText("[System] 채팅방에 입장했습니다.\n");
         layout.setCenter(chatLog);
 
-        //사용자 리스트
+        // 사용자 리스트
         roomMemberListView.setItems(roomMemberItems);
         layout.setRight(roomMemberListView);
 
-        //메세지 입력창
+        // 메세지 입력창
         TextField textField = new TextField();
         textField.setPromptText("내용을 입력해 주세요");
         layout.setBottom(textField);
@@ -226,15 +242,16 @@ public class ClientGUI extends Application implements View {
     }
 
 
+    //로그아웃창
     @Override
     public void logout() {
         mainView();
 
-        //로그아웃 새창 생성
+        // 로그아웃 새창 생성
         Stage logoutStage = new Stage();
         logoutStage.setTitle("Logout");
 
-        //로그아웃 확인창 닫을때까지 대기
+        // 로그아웃 확인창 닫을때까지 대기
         logoutStage.initOwner(primaryStage);
         logoutStage.initModality(Modality.WINDOW_MODAL);
 
@@ -276,6 +293,7 @@ public class ClientGUI extends Application implements View {
         if (Objects.isNull(memberList)) {
             return;
         }
+
         Platform.runLater(() -> {
             roomMemberItems.clear();
             roomMemberItems.addAll(memberList);
@@ -308,11 +326,11 @@ public class ClientGUI extends Application implements View {
         //방제목 입력후 엔터나 확인버튼 클릭시 방생성
         roomNameField.setOnAction(e -> {
             this.roomName = roomNameField.getText();
-            eventHandler.handleCreateRoom(logoutStage, roomName);
+            eventHandler.createRoomRequest(logoutStage, roomName);
         });
         okBtn.setOnAction(e -> {
             this.roomName = roomNameField.getText();
-            eventHandler.handleCreateRoom(logoutStage, roomName);
+            eventHandler.createRoomRequest(logoutStage, roomName);
         });
 
         layout.getChildren().addAll(label, roomNameField, okBtn);
