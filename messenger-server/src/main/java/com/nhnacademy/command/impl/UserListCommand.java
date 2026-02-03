@@ -1,5 +1,6 @@
 package com.nhnacademy.command.impl;
 
+import com.google.inject.Inject;
 import com.nhnacademy.annotation.CommandMapping;
 import com.nhnacademy.annotation.LoginRequired;
 import com.nhnacademy.command.Command;
@@ -23,10 +24,13 @@ import java.util.Map;
 @LoginRequired
 @CommandMapping(MessageType.USER_LIST)
 public class UserListCommand implements Command {
+    @Inject
+    private SessionManager sessionManager;
+
     @Override
     public void execute(Message request) {
         ClientSession session = SessionHolder.get();
-        List<ClientSession> allSessions = SessionManager.getInstance().getAllSessions();
+        List<ClientSession> allSessions = sessionManager.getAllSessions();
 
         List<Map<String, Object>> userListData = new ArrayList<>();
         for (ClientSession member : allSessions) {

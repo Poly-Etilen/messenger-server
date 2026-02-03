@@ -1,5 +1,6 @@
 package com.nhnacademy.command.impl;
 
+import com.google.inject.Inject;
 import com.nhnacademy.annotation.CommandMapping;
 import com.nhnacademy.command.Command;
 import com.nhnacademy.constant.MessageKey;
@@ -23,6 +24,10 @@ import java.util.Map;
 @Slf4j
 @CommandMapping(MessageType.LOGIN)
 public class LoginCommand implements Command {
+
+    @Inject
+    private SessionManager sessionManager;
+
     private static final Map<String, String> userDatabase = new HashMap<>();
 
     static {
@@ -41,7 +46,7 @@ public class LoginCommand implements Command {
 
         log.info("로그인 시도: {}", userId);
 
-        if (SessionManager.getInstance().isLoggedIn(userId)) {
+        if (sessionManager.isLoggedIn(userId)) {
             throw new DuplicateLoginException(userId);
         }
 
@@ -54,7 +59,7 @@ public class LoginCommand implements Command {
 
     private void handleSuccess(ClientSession session, String userId) {
         session.setUserId(userId);
-        SessionManager.getInstance().addSession(userId, session);
+        sessionManager.addSession(userId, session);
 
         MessageHeader header = new MessageHeader(MessageType.LOGIN_SUCCESS, LocalDateTime.now());
 

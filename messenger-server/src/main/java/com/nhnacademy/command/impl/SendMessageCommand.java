@@ -1,5 +1,6 @@
 package com.nhnacademy.command.impl;
 
+import com.google.inject.Inject;
 import com.nhnacademy.annotation.CommandMapping;
 import com.nhnacademy.annotation.LoginRequired;
 import com.nhnacademy.command.Command;
@@ -24,6 +25,9 @@ import java.time.LocalDateTime;
 @CommandMapping(MessageType.CHAT_MESSAGE)
 public class SendMessageCommand implements Command {
 
+    @Inject
+    private ChatRoomManager chatRoomManager;
+
     @Override
     public void execute(Message request) {
         ClientSession session = SessionHolder.get();
@@ -31,7 +35,7 @@ public class SendMessageCommand implements Command {
         String roomId = PayloadExtractor.getRequired(request, MessageKey.ROOM_ID);
         String messageContent = PayloadExtractor.getRequired(request, MessageKey.MESSAGE);
 
-        ChatRoom room = ChatRoomManager.getInstance().getRoom(roomId);
+        ChatRoom room = chatRoomManager.getRoom(roomId);
         if (room == null) {
             log.warn("메시지 전송 실패: 존재하지 않는 방 (roomId={})", roomId);
             return;

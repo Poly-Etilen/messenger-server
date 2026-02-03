@@ -1,5 +1,6 @@
 package com.nhnacademy.command.impl;
 
+import com.google.inject.Inject;
 import com.nhnacademy.annotation.CommandMapping;
 import com.nhnacademy.annotation.LoginRequired;
 import com.nhnacademy.command.Command;
@@ -21,6 +22,10 @@ import java.time.LocalDateTime;
 @LoginRequired
 @CommandMapping(MessageType.CHAT_ROOM_EXIT)
 public class LeaveRoomCommand implements Command {
+
+    @Inject
+    private ChatRoomManager chatRoomManager;
+
     @Override
     public void execute(Message request) {
         ClientSession session = SessionHolder.get();
@@ -35,7 +40,7 @@ public class LeaveRoomCommand implements Command {
             return;
         }
 
-        ChatRoom room = ChatRoomManager.getInstance().getRoom(roomId);
+        ChatRoom room = chatRoomManager.getRoom(roomId);
         if (room != null) {
             room.removeSession(session);
             notifyLeaveMember(room, session.getUserId(), roomId);

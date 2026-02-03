@@ -1,5 +1,6 @@
 package com.nhnacademy.command.impl;
 
+import com.google.inject.Inject;
 import com.nhnacademy.annotation.CommandMapping;
 import com.nhnacademy.annotation.LoginRequired;
 import com.nhnacademy.command.Command;
@@ -25,6 +26,9 @@ import java.time.LocalDateTime;
 @CommandMapping(MessageType.CHAT_ROOM_CREATE)
 public class CreateRoomCommand implements Command {
 
+    @Inject
+    private ChatRoomManager chatRoomManager;
+
     @Override
     public void execute(Message request) {
         ClientSession session = SessionHolder.get();
@@ -34,7 +38,7 @@ public class CreateRoomCommand implements Command {
             throw new InvalidRequestException("방 이름이 공백일 수 없습니다.");
         }
 
-        ChatRoom newRoom = ChatRoomManager.getInstance().createRoom(roomName);
+        ChatRoom newRoom = chatRoomManager.createRoom(roomName);
         newRoom.addSession(session);
         MessageHeader header = new MessageHeader(MessageType.CHAT_ROOM_CREATE_SUCCESS, LocalDateTime.now());
 
