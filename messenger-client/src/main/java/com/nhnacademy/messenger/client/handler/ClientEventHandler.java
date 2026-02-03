@@ -4,6 +4,9 @@ import com.nhnacademy.domain.Header.MessageHeader;
 import com.nhnacademy.domain.Header.MessageType;
 import com.nhnacademy.domain.Message;
 import com.nhnacademy.domain.payload.MessagePayload;
+import com.nhnacademy.messenger.client.command.Command;
+import com.nhnacademy.messenger.client.command.CommandFactory;
+import com.nhnacademy.messenger.client.command.CommandIntializer;
 import com.nhnacademy.ui.form.impl.ClientGUI;
 import com.nhnacademy.util.MessageCodec;
 import javafx.application.Platform;
@@ -15,6 +18,7 @@ import java.net.Socket;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 @Slf4j
 public class ClientEventHandler {
@@ -24,10 +28,12 @@ public class ClientEventHandler {
     private String roomId;
     private String senderId;
     private String receiverId;
+    CommandFactory factory;
     String content;
 
     public ClientEventHandler(ClientGUI view) {
         this.view = view;
+        factory = CommandIntializer.init(this);
         connectToServer();
     }
 
@@ -278,23 +284,16 @@ public class ClientEventHandler {
 
         String[] arr = message.split(" ", 3);
 
-        if ("/whisper".equals(arr[0])) {
-            excuteWhisper(arr);
-        }
+        Command command = factory.get(arr[0]);
 
-
-    }
-
-    private void excuteWhisper(String[] arr) {
-        if (arr.length < 3) {
-            // 잘못된 명령어 형식시 에러
-            view.writeMessage("사용법: /whisper <상대방ID> <메시지>");
+        if (command == null) {
+            view.writeMessage("알 수 없는 명령어입니다.");
             return;
         }
+        command.execute(arr);
 
-        String receiverId = arr[1];
-        String whisperMessage = arr[2];
 
-        sendWhisperMessage(receiverId, whisperMessage);
     }
+
+
 }

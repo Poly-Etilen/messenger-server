@@ -1,6 +1,7 @@
 package com.nhnacademy.messenger.client;
 
 
+import com.nhnacademy.messenger.client.command.CommandFactory;
 import com.nhnacademy.ui.form.impl.ClientGUI;
 import javafx.application.Application;
 
