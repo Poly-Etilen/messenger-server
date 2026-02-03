@@ -51,6 +51,13 @@ public class ClientGUI extends Application implements View {
         this.primaryStage = primaryStage;
         this.eventHandler = new ClientEventHandler(this);
         primaryStage.setTitle("NHN Academy Chatting Program");
+
+        //창닫기시 로그아웃되는 기능 추가
+        primaryStage.setOnCloseRequest(event -> {
+            log.info("창이 닫혔습니다. 로그아웃 합니다");
+            eventHandler.onLogoutClicked();
+
+        });
         mainView();
         primaryStage.show();
     }
