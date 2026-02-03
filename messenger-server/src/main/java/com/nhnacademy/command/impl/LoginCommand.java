@@ -11,6 +11,7 @@ import com.nhnacademy.domain.Message;
 import com.nhnacademy.domain.payload.MessagePayload;
 import com.nhnacademy.exception.DuplicateLoginException;
 import com.nhnacademy.manager.SessionManager;
+import com.nhnacademy.repository.UserRepository;
 import com.nhnacademy.session.ClientSession;
 import com.nhnacademy.util.MessageCodec;
 import com.nhnacademy.util.PayloadExtractor;
@@ -27,14 +28,11 @@ public class LoginCommand implements Command {
 
     @Inject
     private SessionManager sessionManager;
+    @Inject
+    private UserRepository userRepository;
 
     private static final Map<String, String> userDatabase = new HashMap<>();
 
-    static {
-        userDatabase.put("marco", "nhnacademy123");
-        userDatabase.put("alice", "nhnacademy456");
-        userDatabase.put("bob", "nhnacademy789");
-    }
     @Override
     public void execute(Message request) {
         ClientSession session = SessionHolder.get();
@@ -50,7 +48,7 @@ public class LoginCommand implements Command {
             throw new DuplicateLoginException(userId);
         }
 
-        if (authenticate(userId, password)) {
+        if (userRepository.authenticate(userId, password)) {
             handleSuccess(session, userId);
         } else {
             handleFail(session, userId);
@@ -92,9 +90,5 @@ public class LoginCommand implements Command {
         } catch (IOException e) {
             log.error("전송 오류", e);
         }
-    }
-
-    private boolean authenticate(String userId, String password) {
-        return userDatabase.containsKey(userId) && userDatabase.get(userId).equals(password);
     }
 }

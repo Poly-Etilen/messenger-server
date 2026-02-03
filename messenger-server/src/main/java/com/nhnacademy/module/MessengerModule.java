@@ -7,6 +7,7 @@ import com.nhnacademy.command.Command;
 import com.nhnacademy.domain.Header.MessageType;
 import com.nhnacademy.manager.ChatRoomManager;
 import com.nhnacademy.manager.SessionManager;
+import com.nhnacademy.repository.UserRepository;
 import org.reflections.Reflections;
 
 import java.util.Set;
@@ -16,6 +17,7 @@ public class MessengerModule extends AbstractModule {
     protected void configure() {
         bind(ChatRoomManager.class).toInstance(ChatRoomManager.getInstance());
         bind(SessionManager.class).toInstance(SessionManager.getInstance());
+        bind(UserRepository.class).asEagerSingleton();
 
         MapBinder<MessageType, Command> mapBinder = MapBinder.newMapBinder(binder(), MessageType.class, Command.class);
 

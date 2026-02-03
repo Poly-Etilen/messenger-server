@@ -150,6 +150,7 @@ public class ClientEventHandler {
                 break;
             case CHAT_ROOM_EXIT_SUCCESS:
                 roomListRequest();
+                memberListRequest();
                 view.showRoomList();
                 break;
             case USER_LIST_SUCCESS:
@@ -248,6 +249,7 @@ public class ClientEventHandler {
     public void onRefreshClicked() {
         log.info("방 목록 새로고침 요청");
         roomListRequest(); // 기존에 작성하신 private 메서드 호출
+        memberListRequest();
     }
 
     public void sendWhisperMessage(String targetId, String trim) {
