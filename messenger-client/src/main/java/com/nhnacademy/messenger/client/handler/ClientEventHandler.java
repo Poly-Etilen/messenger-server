@@ -9,6 +9,7 @@ import com.nhnacademy.util.MessageCodec;
 import javafx.application.Platform;
 import javafx.stage.Stage;
 import lombok.extern.slf4j.Slf4j;
+
 import java.io.IOException;
 import java.net.Socket;
 import java.time.LocalDateTime;
