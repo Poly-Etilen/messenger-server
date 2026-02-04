@@ -3,37 +3,41 @@ package com.nhnacademy.messenger.client.handler;
 import com.nhnacademy.constant.MessageKey;
 import com.nhnacademy.domain.Header.MessageType;
 import com.nhnacademy.domain.Message;
+import com.nhnacademy.messenger.client.ClientConnection;
 import com.nhnacademy.messenger.client.request.Request;
 import com.nhnacademy.messenger.client.request.RequestFactory;
 import com.nhnacademy.ui.form.impl.ClientGUI;
-import com.nhnacademy.util.MessageCodec;
-import javafx.application.Platform;
 import javafx.stage.Stage;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
-import java.net.Socket;
 import java.util.List;
 import java.util.Map;
 
 @Slf4j
 public class ClientEventHandler {
     private final ClientGUI view;
-    private Socket socket;
     private String myUserId;
     private String roomId;
     private String senderId;
     private String receiverId;
+    private final ClientConnection connection;
+
     String content;
 
     public ClientEventHandler(ClientGUI view) {
         this.view = view;
-        connectToServer();
+        try {
+            this.connection = new ClientConnection("localhost", 8000,this);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        connection.startListening();
     }
 
+
     private void sendRequest(Request request) {
-        Message message = request.makeMessage();
-        sendMessage(message);
+        connection.send(request.makeMessage());
     }
 
     //로그인 요청 전송
@@ -85,40 +89,9 @@ public class ClientEventHandler {
 
     }
 
-    private void connectToServer() {
-        try {
-            this.socket = new Socket("localhost", 8000);
-            log.info("서버에 연결되었습니다.");
-
-            Thread listener = new Thread(this::listen);
-            listener.setDaemon(true);
-            listener.start();
-        } catch (IOException e) {
-            log.error("서버 연결 실패", e);
-        }
-    }
-
-    private void listen() {
-        try {
-            while (socket != null && !socket.isClosed()) {
-                Message message = MessageCodec.readMessage(socket.getInputStream());
-                if (message == null) {
-                    break;
-                }
-
-                MessageType type = message.getHeader().getMessageType();
-
-                Platform.runLater(() -> {
-                    handleMessage(type, message);
-                });
-            }
-        } catch (IOException e) {
-            log.error("메세지 수신 중 에러", e);
-        }
-    }
 
     //받은 메세지 처리
-    private void handleMessage(MessageType type, Message message) {
+    public void handleMessage(MessageType type, Message message) {
         Map<String, Object> data = message.getPayload().getData();
         switch (type) {
             case LOGIN_SUCCESS: // 로그인 성공시 방 리스트화면으로 이동, 멤버 리스트, 채팅방 리스트 불러오기
@@ -243,7 +216,6 @@ public class ClientEventHandler {
 
     private void handleLogoutSuccess() {
         view.logout();
-        return;
     }
 
     private void handleRoomUserList(Map<String, Object> data) {
@@ -293,7 +265,6 @@ public class ClientEventHandler {
         log.info("로그인 성공");
         view.setCurrentUser(myUserId);
         handleExitRoom();
-        return;
     }
 
     private void loadRoomListScene() { // 방목록화면 동기화
@@ -347,14 +318,6 @@ public class ClientEventHandler {
 
     }
 
-    private void sendMessage(Message message) { // 메세지를 서버로 전송
-        try {
-            MessageCodec.sendMessage(socket.getOutputStream(), message);
-            log.debug("메세지 전송 {}", message.getHeader().getMessageType());
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
 
 
 }
