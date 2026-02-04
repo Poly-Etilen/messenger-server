@@ -5,9 +5,6 @@ import com.nhnacademy.domain.Header.MessageHeader;
 import com.nhnacademy.domain.Header.MessageType;
 import com.nhnacademy.domain.Message;
 import com.nhnacademy.domain.payload.MessagePayload;
-import com.nhnacademy.messenger.client.command.Command;
-import com.nhnacademy.messenger.client.command.CommandFactory;
-import com.nhnacademy.messenger.client.command.CommandIntializer;
 import com.nhnacademy.ui.form.impl.ClientGUI;
 import com.nhnacademy.util.MessageCodec;
 import javafx.application.Platform;
@@ -29,12 +26,10 @@ public class ClientEventHandler {
     private String roomId;
     private String senderId;
     private String receiverId;
-    CommandFactory factory;
     String content;
 
     public ClientEventHandler(ClientGUI view) {
         this.view = view;
-        factory = CommandIntializer.init(this);
         connectToServer();
     }
 
@@ -205,7 +200,6 @@ public class ClientEventHandler {
                 content = (String) data.get("content");
                 receiveMessage("Whisper [to " + receiverId + "] : " + content);
                 break;
-
             case PRIVATE_MESSAGE_RECEIVE:
                 senderId = (String) data.get("senderId");
                 content = (String) data.get("content");
@@ -229,6 +223,23 @@ public class ClientEventHandler {
                 }
                 roomMemberListRequest();
                 break;
+            case CHAT_MESSAGE_HISTORY_SUCCESS:
+                List<Map<String, String>> history = (List<Map<String, String>>) data.get("history");
+                if (!roomId.equals(data.get("roomId"))) {
+                    log.debug("현재 방번호화 조회된 방히스토리 번호가 다름니다");
+                    break;
+                }
+                log.debug(" 채팅 히스토리 ");
+                view.writeMessage("채팅 히스토리 출력");
+                for (Map<String, String> chat : history) {
+                    String time = chat.get("timestamp");
+                    String senderId = chat.get("senderId");
+                    String content = chat.get("message");
+                    log.debug("{} {}: {}", time, senderId, content);
+                    view.writeMessage(time + " " + content);
+                }
+
+                break;
         }
 
     }
@@ -245,6 +256,7 @@ public class ClientEventHandler {
                         /whisper <아이디> <메시지>
                         /history
                         /exit
+                        /logout
                         """);
                 break;
             case "/whisper":
@@ -263,6 +275,10 @@ public class ClientEventHandler {
             case "/exit":
             case "/나가기":
                 onExitRoomClicked();
+                break;
+            case "/logout":
+                onExitRoomClicked();
+                onLogoutClicked();
                 break;
             default:
                 view.writeMessage("[System] 알 수 없는 명령어입니다: " + command);
@@ -331,20 +347,11 @@ public class ClientEventHandler {
     }
 
     public void sendChatHistoryRequest() {
+        MessageHeader header = new MessageHeader(MessageType.CHAT_MESSAGE_HISTORY, LocalDateTime.now());
+        MessagePayload payload = new MessagePayload();
+        payload.getData().put("roomId", roomId);
 
-    }
-
-    public void executeCommand(String message) {
-
-        String[] arr = message.split(" ", 3);
-
-        Command command = factory.get(arr[0]);
-
-        if (command == null) {
-            view.writeMessage("알 수 없는 명령어입니다.");
-            return;
-        }
-        command.execute(arr);
+        sendMessage(new Message("0", header, payload));
 
 
     }
