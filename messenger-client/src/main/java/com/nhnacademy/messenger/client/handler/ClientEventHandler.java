@@ -200,7 +200,6 @@ public class ClientEventHandler {
                 content = (String) data.get("content");
                 receiveMessage("Whisper [to " + receiverId + "] : " + content);
                 break;
-
             case PRIVATE_MESSAGE_RECEIVE:
                 senderId = (String) data.get("senderId");
                 content = (String) data.get("content");
@@ -224,6 +223,23 @@ public class ClientEventHandler {
                 }
                 roomMemberListRequest();
                 break;
+            case CHAT_MESSAGE_HISTORY_SUCCESS:
+                List<Map<String, String>> history = (List<Map<String, String>>) data.get("history");
+                if (!roomId.equals(data.get("roomId"))) {
+                    log.debug("현재 방번호화 조회된 방히스토리 번호가 다름니다");
+                    break;
+                }
+                log.debug(" 채팅 히스토리 ");
+                view.writeMessage("채팅 히스토리 출력");
+                for (Map<String, String> chat : history) {
+                    String time = chat.get("timestamp");
+                    String senderId = chat.get("senderId");
+                    String content = chat.get("message");
+                    log.debug("{} {}: {}", time, senderId, content);
+                    view.writeMessage(time + " " + content);
+                }
+
+                break;
         }
 
     }
@@ -240,6 +256,7 @@ public class ClientEventHandler {
                         /whisper <아이디> <메시지>
                         /history
                         /exit
+                        /logout
                         """);
                 break;
             case "/whisper":
@@ -260,6 +277,7 @@ public class ClientEventHandler {
                 onExitRoomClicked();
                 break;
             case "/logout":
+                onExitRoomClicked();
                 onLogoutClicked();
                 break;
             default:
@@ -329,9 +347,14 @@ public class ClientEventHandler {
     }
 
     public void sendChatHistoryRequest() {
+        MessageHeader header = new MessageHeader(MessageType.CHAT_MESSAGE_HISTORY, LocalDateTime.now());
+        MessagePayload payload = new MessagePayload();
+        payload.getData().put("roomId", roomId);
+
+        sendMessage(new Message("0", header, payload));
+
 
     }
-
 
 
 }

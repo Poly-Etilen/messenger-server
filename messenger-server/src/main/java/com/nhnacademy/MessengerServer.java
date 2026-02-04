@@ -6,6 +6,7 @@ import com.google.inject.Key;
 import com.google.inject.TypeLiteral;
 import com.nhnacademy.command.Command;
 import com.nhnacademy.domain.Header.MessageType;
+import com.nhnacademy.manager.MessageQueueManager;
 import com.nhnacademy.module.MessengerModule;
 import com.nhnacademy.session.ClientSession;
 import lombok.AllArgsConstructor;
@@ -30,7 +31,7 @@ public class MessengerServer {
                 try {
                     Socket clientSocket = socket.accept();
                     log.info("새로운 클라이언트 접속: {}", clientSocket.getInetAddress());
-                    ClientSession session = new ClientSession(clientSocket, commandMap);
+                    ClientSession session = new ClientSession(clientSocket, null, commandMap);
                     Thread sessionThread = new Thread(session);
                     sessionThread.start();
                 } catch (IOException e) {
@@ -54,6 +55,8 @@ public class MessengerServer {
         }
 
         Injector injector = Guice.createInjector(new MessengerModule());
+        MessageQueueManager queueManager = injector.getInstance(MessageQueueManager.class);
+        queueManager.start();
 
         Map<MessageType, Command> commandMap = injector.getInstance(
                 Key.get(new TypeLiteral<Map<MessageType, Command>>() {})

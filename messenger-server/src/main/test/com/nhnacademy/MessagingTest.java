@@ -24,7 +24,7 @@ public class MessagingTest extends ServerTestSupport{
 
     @Test
     @DisplayName("채팅 메시지 전송: 같은 방은 다른 사용자에게 브로드 캐스트 되어야 함")
-    void sendMessageTest() throws IOException {
+    void sendMessageTest() throws IOException, InterruptedException {
         ChatRoom room = ChatRoomManager.getInstance().createRoom("Chat Room");
         session.setUserId("sender");
         room.addSession(session);
@@ -33,7 +33,7 @@ public class MessagingTest extends ServerTestSupport{
         ByteArrayOutputStream receiverOut = new ByteArrayOutputStream();
         when(receiverSocket.getOutputStream()).thenReturn(receiverOut);
 
-        ClientSession receiverSession = new ClientSession(receiverSocket, null);
+        ClientSession receiverSession = new ClientSession(receiverSocket, null, null);
         receiverSession.setUserId("receiver");
         room.addSession(receiverSession);
 
@@ -45,13 +45,15 @@ public class MessagingTest extends ServerTestSupport{
         ));
 
         command.execute(message);
+
+        Thread.sleep(200);
         Assertions.assertTrue(receiverOut.size() > 0, "상대방에게 메시지가 전송되어야 합니다.");
         Assertions.assertTrue(out.size() > 0, "본인에게 전송 성공 응답이 와야 합니다.");
     }
 
     @Test
     @DisplayName("귓속말 전송: 특정 사용자에게만 메시지가 전달되어야 함")
-    void whisperMessageTest() throws IOException {
+    void whisperMessageTest() throws IOException, InterruptedException {
         session.setUserId("sender");
         SessionManager.getInstance().addSession("sender", session);
 
@@ -59,7 +61,7 @@ public class MessagingTest extends ServerTestSupport{
         ByteArrayOutputStream receiverOut = new ByteArrayOutputStream();
         when(receiverSocket.getOutputStream()).thenReturn(receiverOut);
 
-        ClientSession receiverSession = new ClientSession(receiverSocket, null);
+        ClientSession receiverSession = new ClientSession(receiverSocket, null, null);
         receiverSession.setUserId("receiver");
         SessionManager.getInstance().addSession("receiver", receiverSession);
 
@@ -67,13 +69,17 @@ public class MessagingTest extends ServerTestSupport{
         injectDependencies(command);
         Message message = createMessage(MessageType.PRIVATE_MESSAGE, Map.of(
                 "receiverId", "receiver",
-                "message", " Secret Message"
+                "message", "Secret Message"
         ));
 
         command.execute(message);
 
-        Assertions.assertTrue(receiverOut.size() > 0, "수신자에게 귓속말이 전달되어야 합니다.");
-        Assertions.assertTrue(out.size() > 0, "발신자에게 성공 응답이 와야 합니다.");
+        Thread.sleep(200);
+        Assertions.assertTrue(out.size() > 0, "본인에게 전송 성공 응답이 와야 합니다.");
+
+        String receiverLog = receiverOut.toString();
+        Assertions.assertTrue(receiverLog.contains("Secret Message"), "상대방에게 메시지 본문이 전달되어야 합니다.");
+        Assertions.assertTrue(receiverLog.contains("sender"), "보낸 사람의 ID가 포함되어야 합니다.");
     }
 
     @Test

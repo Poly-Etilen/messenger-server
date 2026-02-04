@@ -7,6 +7,7 @@ import com.nhnacademy.domain.Header.MessageType;
 import com.nhnacademy.domain.Message;
 import com.nhnacademy.domain.payload.MessagePayload;
 import com.nhnacademy.manager.ChatRoomManager;
+import com.nhnacademy.manager.MessageQueueManager;
 import com.nhnacademy.manager.SessionManager;
 import com.nhnacademy.repository.UserRepository;
 import com.nhnacademy.session.ClientSession;
@@ -37,7 +38,7 @@ public class ServerTestSupport {
         socket = Mockito.mock(Socket.class);
         out = new ByteArrayOutputStream();
         when(socket.getOutputStream()).thenReturn(out);
-        session = new ClientSession(socket, null);
+        session = new ClientSession(socket, null, null);
         SessionHolder.set(session);
         userRepository = new UserRepository();
     }
@@ -57,12 +58,15 @@ public class ServerTestSupport {
                 if (field.isAnnotationPresent(Inject.class)) {
                     field.setAccessible(true);
 
-                    if (field.getType() == ChatRoomManager.class) {
+                    if (field.getType().isAssignableFrom(ChatRoomManager.class)) {
                         field.set(command, ChatRoomManager.getInstance());
-                    } else if (field.getType() == SessionManager.class) {
+                    } else if (field.getType().isAssignableFrom(SessionManager.class)) {
                         field.set(command, SessionManager.getInstance());
-                    } else if (field.getType() == UserRepository.class) {
+                    } else if (field.getType().isAssignableFrom(UserRepository.class)) {
                         field.set(command, userRepository);
+                    } else if (field.getType().isAssignableFrom(MessageQueueManager.class)) {
+                        field.set(command, MessageQueueManager.getInstance());
+                        MessageQueueManager.getInstance().start();
                     }
                 }
             }
