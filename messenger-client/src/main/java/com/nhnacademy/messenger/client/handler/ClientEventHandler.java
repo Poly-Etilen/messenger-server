@@ -1,42 +1,43 @@
 package com.nhnacademy.messenger.client.handler;
 
 import com.nhnacademy.constant.MessageKey;
-import com.nhnacademy.domain.Header.MessageHeader;
 import com.nhnacademy.domain.Header.MessageType;
 import com.nhnacademy.domain.Message;
-import com.nhnacademy.domain.payload.MessagePayload;
+import com.nhnacademy.messenger.client.ClientConnection;
 import com.nhnacademy.messenger.client.request.Request;
 import com.nhnacademy.messenger.client.request.RequestFactory;
 import com.nhnacademy.ui.form.impl.ClientGUI;
-import com.nhnacademy.util.MessageCodec;
-import javafx.application.Platform;
 import javafx.stage.Stage;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
-import java.net.Socket;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
 @Slf4j
 public class ClientEventHandler {
     private final ClientGUI view;
-    private Socket socket;
     private String myUserId;
     private String roomId;
     private String senderId;
     private String receiverId;
+    private final ClientConnection connection;
+
     String content;
 
     public ClientEventHandler(ClientGUI view) {
         this.view = view;
-        connectToServer();
+        try {
+            this.connection = new ClientConnection("localhost", 8000,this);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        connection.startListening();
     }
 
+
     private void sendRequest(Request request) {
-        Message message = request.makeMessage();
-        sendMessage(message);
+        connection.send(request.makeMessage());
     }
 
     //로그인 요청 전송
@@ -74,8 +75,7 @@ public class ClientEventHandler {
 
     public void onRefreshClicked() {
         log.info("방 목록 새로고침 요청");
-        sendRequest(RequestFactory.roomListRequest()); // 방 리스트 동기화
-        sendRequest(RequestFactory.memberListRqeust()); // 멤버 리스트 동기화
+        loadRoomListScene();
     }
 
     //귓속말 전송
@@ -89,156 +89,187 @@ public class ClientEventHandler {
 
     }
 
-    private void connectToServer() {
-        try {
-            this.socket = new Socket("localhost", 8000);
-            log.info("서버에 연결되었습니다.");
-
-            Thread listener = new Thread(this::listen);
-            listener.setDaemon(true);
-            listener.start();
-        } catch (IOException e) {
-            log.error("서버 연결 실패", e);
-        }
-    }
-
-    private void listen() {
-        try {
-            while (socket != null && !socket.isClosed()) {
-                Message message = MessageCodec.readMessage(socket.getInputStream());
-                if (message == null) {
-                    break;
-                }
-
-                MessageType type = message.getHeader().getMessageType();
-
-                Platform.runLater(() -> {
-                    handleMessage(type, message);
-                });
-            }
-        } catch (IOException e) {
-            log.error("메세지 수신 중 에러", e);
-        }
-    }
 
     //받은 메세지 처리
-    private void handleMessage(MessageType type, Message message) {
+    public void handleMessage(MessageType type, Message message) {
         Map<String, Object> data = message.getPayload().getData();
         switch (type) {
             case LOGIN_SUCCESS: // 로그인 성공시 방 리스트화면으로 이동, 멤버 리스트, 채팅방 리스트 불러오기
-                log.info("로그인 성공");
-                view.setCurrentUser(myUserId);
-                view.showRoomList();
-                sendRequest(RequestFactory.roomListRequest());
-                sendRequest(RequestFactory.memberListRqeust());
+                handleLoginSuccess();
                 break;
             case LOGIN_FAIL: // 로그인 오류시 에러창 출력
-                String reason = (String) data.get("reason");
-                if (reason == null) {
-                    reason = "로그인 실패";
-                }
-                view.showError("로그인 실패", reason);
+                handleLoginFail(data);
                 break;
             case CHAT_ROOM_LIST_SUCCESS: // 채팅방 리스트를 불러옴
-                List<Map<String, Object>> rooms = (List<Map<String, Object>>) data.get("roomList");
-                view.updateRoomList(rooms);
+                handleRoomList(data);
                 break;
             case CHAT_ROOM_ENTER_SUCCESS: // 채팅방 입장 성공시 채팅방으로 이동, 방에있는 멤버 리스트 불러오기
-                this.roomId = (String) data.get("roomId");
-                view.showEnterRoom();
-                sendRequest(RequestFactory.roomMemberListRequest(roomId));
+                handleEnterRoom(data);
                 break;
             case CHAT_ROOM_CREATE_SUCCESS: // 채팅방 생성 성공시 채팅방으로 이동, 방에있는 멤버 리스트 불러오기
-                this.roomId = (String) data.get("roomId");
-                view.showEnterRoom();
-                sendRequest(RequestFactory.roomMemberListRequest(roomId));
+                handleEnterRoom(data);
                 break;
             case CHAT_ROOM_EXIT_SUCCESS: // 채팅방 나가기 성공시 방 리스트 화면으로 이동후 멤버리스트, 채팅방 리스트 불러오기
-                view.showRoomList();
-                sendRequest(RequestFactory.roomListRequest());
-                sendRequest(RequestFactory.memberListRqeust());
+                handleExitRoom();
                 break;
             case USER_LIST_SUCCESS: // 유저 리스트를 불러옴
-                List<Map<String, Object>> userListData = (List<Map<String, Object>>) data.get("userList");
-                view.updateMemberList(userListData);
-                for (Map<String, Object> userList : userListData) {
-                    String userId = (String) userList.get("id");
-                    log.debug(userId);
-                }
+                handleUserList(data);
                 break;
             case CHAT_ROOM_USER_LIST_SUCCESS: // 내방에 있는 유저 리스트를 불러옴
-                if (!roomId.equals((String) data.get("roomId"))) {
-                    log.debug("roomId가 동일하지 않습니다");
-                    break;
-                }
-                List<String> roomUserList = (List<String>) data.get("userList");
-                log.debug("서버 수신 유저 리스트: {}", roomUserList);
-                view.updateRoomMemberList(roomUserList);
+                handleRoomUserList(data);
                 break;
-            case LOGOUT:
             case LOGOUT_SUCCESS:
-                view.logout();
+                handleLogoutSuccess();
                 break;
             case CHAT_MESSAGE: // 상대방이 보낸 채팅 메세지 수신
-                senderId = (String) data.get("senderId");
-                content = (String) data.get("message");
-                log.debug("메세지 수신 성공 roomId: {}, senderID: {}", roomId, senderId);
-                receiveMessage(content);
-                if ("System".equals(senderId)) {
-                    sendRequest(RequestFactory.roomMemberListRequest(roomId));
-                }
+                handleReciveMessage(data);
                 break;
             case CHAT_MESSAGE_SUCCESS: // 메세지 전송 성공시
-                long messageId = (long) data.get("messageId");
-                log.debug("메세지 전송 성공 roomId: {}, messageId: {}", roomId, messageId);
+                handleSendMessageSuccess(data);
                 break;
             case PRIVATE_MESSAGE_SUCCESS:
-                receiverId = (String) data.get("receiverId");
-                content = (String) data.get("content");
-                receiveMessage("Whisper [to " + receiverId + "] : " + content);
+                handleWhisperSuccess(data);
                 break;
             case PRIVATE_MESSAGE_RECEIVE:
-                senderId = (String) data.get("senderId");
-                content = (String) data.get("content");
-                receiveMessage("Whisper [" + senderId + "] : " + content);
+                handleWhisperRecived(data);
                 break;
             case PUSH_NEW_MESSAGE:
-                content = (String) data.get(MessageKey.CONTENT);
-                view.writeMessage(content);
+                handlePushNewMessage(data);
                 break;
             case PUSH_ROOM_ENTER:
-                String enterUser = (String) data.get(MessageKey.USER_NAME);
-                if (enterUser != null) {
-                    view.writeMessage("[알림] " + enterUser + " 님이 입장하셨습니다.");
-                }
-                sendRequest(RequestFactory.roomMemberListRequest(roomId));
+                handlePushRoomEnter(data);
                 break;
             case PUSH_ROOM_EXIT:
-                String exitUser = (String) data.get(MessageKey.USER_ID);
-                if (exitUser != null) {
-                    view.writeMessage("[알림] " + exitUser + " 님이 퇴장하셨습니다.");
-                }
-                sendRequest(RequestFactory.roomMemberListRequest(roomId));
+                handlePushRoomExit(data);
                 break;
             case CHAT_MESSAGE_HISTORY_SUCCESS:
-                List<Map<String, String>> history = (List<Map<String, String>>) data.get("history");
-                if (!roomId.equals(data.get("roomId"))) {
-                    log.debug("현재 방번호화 조회된 방히스토리 번호가 다름니다");
-                    break;
-                }
-                log.debug(" 채팅 히스토리 ");
-                view.writeMessage("채팅 히스토리 출력");
-                for (Map<String, String> chat : history) {
-                    String time = chat.get("timestamp");
-                    String senderId = chat.get("senderId");
-                    String content = chat.get("message");
-                    log.debug("{} {}: {}", time, senderId, content);
-                    view.writeMessage(time + " " + content);
-                }
-
+                handleHistorySuccess(data);
                 break;
         }
 
+    }
+
+    private void handlePushRoomEnter(Map<String, Object> data) {
+        String enterUser = (String) data.get(MessageKey.USER_NAME);
+        if (enterUser != null) {
+            view.writeMessage("[알림] " + enterUser + " 님이 입장하셨습니다.");
+        }
+        sendRequest(RequestFactory.roomMemberListRequest(roomId));
+    }
+
+    private void handlePushNewMessage(Map<String, Object> data) {
+        content = (String) data.get(MessageKey.CONTENT);
+        view.writeMessage(content);
+    }
+
+    private void handleWhisperRecived(Map<String, Object> data) {
+        senderId = (String) data.get("senderId");
+        content = (String) data.get("content");
+        receiveMessage("Whisper [" + senderId + "] : " + content);
+    }
+
+    private void handlePushRoomExit(Map<String, Object> data) {
+        String exitUser = (String) data.get(MessageKey.USER_ID);
+        if (exitUser != null) {
+            view.writeMessage("[알림] " + exitUser + " 님이 퇴장하셨습니다.");
+        }
+        sendRequest(RequestFactory.roomMemberListRequest(roomId));
+    }
+
+    private void handleHistorySuccess(Map<String, Object> data) {
+        List<Map<String, String>> history = (List<Map<String, String>>) data.get("history");
+        if (!roomId.equals(data.get("roomId"))) {
+            log.debug("현재 방번호화 조회된 방히스토리 번호가 다름니다");
+            return;
+        }
+        log.debug(" 채팅 히스토리 ");
+        view.writeMessage("채팅 히스토리 출력");
+        for (Map<String, String> chat : history) {
+            String time = chat.get("timestamp");
+            String senderId = chat.get("senderId");
+            String content = chat.get("message");
+            log.debug("{} {}: {}", time, senderId, content);
+            view.writeMessage(time + " " + content);
+        }
+    }
+
+    private void handleWhisperSuccess(Map<String, Object> data) {
+        receiverId = (String) data.get("receiverId");
+        content = (String) data.get("content");
+        receiveMessage("Whisper [to " + receiverId + "] : " + content);
+    }
+
+    private void handleSendMessageSuccess(Map<String, Object> data) {
+        long messageId = (long) data.get("messageId");
+        log.debug("메세지 전송 성공 roomId: {}, messageId: {}", roomId, messageId);
+    }
+
+    private void handleReciveMessage(Map<String, Object> data) {
+        senderId = (String) data.get("senderId");
+        content = (String) data.get("message");
+        log.debug("메세지 수신 성공 roomId: {}, senderID: {}", roomId, senderId);
+        receiveMessage(content);
+        if ("System".equals(senderId)) {
+            sendRequest(RequestFactory.roomMemberListRequest(roomId));
+        }
+    }
+
+    private void handleLogoutSuccess() {
+        view.logout();
+    }
+
+    private void handleRoomUserList(Map<String, Object> data) {
+        if (!roomId.equals((String) data.get("roomId"))) {
+            log.debug("roomId가 동일하지 않습니다");
+            return;
+        }
+        List<String> roomUserList = (List<String>) data.get("userList");
+        log.debug("서버 수신 유저 리스트: {}", roomUserList);
+        view.updateRoomMemberList(roomUserList);
+    }
+
+    private void handleUserList(Map<String, Object> data) {
+        List<Map<String, Object>> userListData = (List<Map<String, Object>>) data.get("userList");
+        view.updateMemberList(userListData);
+        for (Map<String, Object> userList : userListData) {
+            String userId = (String) userList.get("id");
+            log.debug(userId);
+        }
+    }
+
+    private void handleExitRoom() {
+        view.showRoomList();
+        loadRoomListScene();
+    }
+
+    private void handleEnterRoom(Map<String, Object> data) {
+        this.roomId = (String) data.get("roomId");
+        view.showEnterRoom();
+        sendRequest(RequestFactory.roomMemberListRequest(roomId));
+    }
+
+    private void handleRoomList(Map<String, Object> data) {
+        List<Map<String, Object>> rooms = (List<Map<String, Object>>) data.get("roomList");
+        view.updateRoomList(rooms);
+    }
+
+    private void handleLoginFail(Map<String, Object> data) {
+        String reason = (String) data.get("reason");
+        if (reason == null) {
+            reason = "로그인 실패";
+        }
+        view.showError("로그인 실패", reason);
+    }
+
+    private void handleLoginSuccess() {
+        log.info("로그인 성공");
+        view.setCurrentUser(myUserId);
+        handleExitRoom();
+    }
+
+    private void loadRoomListScene() { // 방목록화면 동기화
+        sendRequest(RequestFactory.roomListRequest());
+        sendRequest(RequestFactory.memberListRqeust());
     }
 
     public void handleCommand(String commandLine) {
@@ -287,14 +318,6 @@ public class ClientEventHandler {
 
     }
 
-    private void sendMessage(Message message) { // 메세지를 서버로 전송
-        try {
-            MessageCodec.sendMessage(socket.getOutputStream(), message);
-            log.debug("메세지 전송 {}", message.getHeader().getMessageType());
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
 
 
 }
