@@ -35,9 +35,12 @@ public class ServerTestSupport {
 
     @BeforeEach
     public void setup() throws IOException {
+        // 가짜 소켓 생성
         socket = Mockito.mock(Socket.class);
+        // 서버가 소켓에 무언가 쓰면 실제 소켓 대신 out에 저장됨
         out = new ByteArrayOutputStream();
         when(socket.getOutputStream()).thenReturn(out);
+        // 세션 생성 및 컨텍스트 설정
         session = new ClientSession(socket, null, null);
         SessionHolder.set(session);
         userRepository = new UserRepository();
@@ -45,18 +48,22 @@ public class ServerTestSupport {
 
     @AfterEach
     void teardown() {
+        // 스레드 로컬 비우기
         SessionHolder.clear();
 
+        // 싱글톤 객체 초기화
         resetSingleton(ChatRoomManager.getInstance(), "roomMaps");
         resetSingleton(SessionManager.getInstance(), "sessionMap");
     }
 
     protected void injectDependencies(Object command) {
         try {
+            // command 객체의 모든 필드를 순회함
             for (Field field : command.getClass().getDeclaredFields()) {
                 field.setAccessible(true);
+                // @Inject가 붙은 필드만 대상으로 지정
                 if (field.isAnnotationPresent(Inject.class)) {
-                    field.setAccessible(true);
+                    field.setAccessible(true); // private 필드 접근 가능하게 설정
 
                     if (field.getType().isAssignableFrom(ChatRoomManager.class)) {
                         field.set(command, ChatRoomManager.getInstance());
@@ -79,6 +86,7 @@ public class ServerTestSupport {
         try {
             Field field = instance.getClass().getDeclaredField(fieldName);
             field.setAccessible(true);
+            // 맵을 꺼내서 clear() 호출해서 데이터를 싹 비움
             ((Map<?,?>) field.get(instance)).clear();
         } catch (Exception e) {
             throw new RuntimeException("싱글톤 초기화 실패: " + fieldName, e);
