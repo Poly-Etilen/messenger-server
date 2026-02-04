@@ -328,11 +328,11 @@ public class ClientGUI extends Application implements View {
         //방제목 입력후 엔터나 확인버튼 클릭시 방생성
         roomNameField.setOnAction(e -> {
             this.roomName = roomNameField.getText();
-            eventHandler.createRoomRequest(logoutStage, roomName);
+            eventHandler.createRoomClicked(logoutStage, roomName);
         });
         okBtn.setOnAction(e -> {
             this.roomName = roomNameField.getText();
-            eventHandler.createRoomRequest(logoutStage, roomName);
+            eventHandler.createRoomClicked(logoutStage, roomName);
         });
 
         layout.getChildren().addAll(label, roomNameField, okBtn);
