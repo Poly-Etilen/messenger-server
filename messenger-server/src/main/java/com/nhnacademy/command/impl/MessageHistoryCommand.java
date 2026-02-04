@@ -56,7 +56,7 @@ public class MessageHistoryCommand implements Command {
         MessagePayload payload = new MessagePayload();
         payload.getData().put(MessageKey.ROOM_ID, roomId);
         payload.getData().put(MessageKey.HISTORY, historyData);
-        Message response = new Message("0", messageHeader, payload);
+        Message response = new Message(messageHeader, payload);
 
         try {
             MessageCodec.sendMessage(session.getOutputStream(), response);

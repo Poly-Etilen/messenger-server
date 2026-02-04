@@ -10,7 +10,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Message {
-    String lengthLine;
     MessageHeader header;
     MessagePayload payload;
 

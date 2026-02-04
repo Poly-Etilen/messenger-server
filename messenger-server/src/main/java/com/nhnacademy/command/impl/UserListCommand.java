@@ -51,6 +51,6 @@ public class UserListCommand implements Command {
         MessagePayload payload = new MessagePayload();
         payload.getData().put(MessageKey.USER_LIST, userListData);
 
-        session.sendMessage(new Message("0", header, payload));
+        session.sendMessage(new Message(header, payload));
     }
 }

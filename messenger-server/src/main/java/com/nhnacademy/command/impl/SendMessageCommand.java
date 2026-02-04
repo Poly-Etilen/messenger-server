@@ -36,15 +36,19 @@ public class SendMessageCommand implements Command {
     public void execute(Message request) {
         ClientSession session = SessionHolder.get();
 
+        // 요청으로부터 방 ID를 추출함
         String roomId = PayloadExtractor.getRequired(request, MessageKey.ROOM_ID);
+        // 메시지 내용도 추출함
         String messageContent = PayloadExtractor.getRequired(request, MessageKey.MESSAGE);
 
         ChatRoom room = chatRoomManager.getRoom(roomId);
+        // 방어 로직
         if (room == null) {
             log.warn("메시지 전송 실패: 존재하지 않는 방 (roomId={})", roomId);
             return;
         }
 
+        // 참여하지 않은 유저가 메시지를 보낸 경우 차단
         if (!room.getSessions().contains(session)) {
             log.warn("차단됨: 방에 입장하지 않는 사용자({})가 메시지 전송 시도", session.getUserId());
             return;
@@ -52,8 +56,9 @@ public class SendMessageCommand implements Command {
 
         String senderId = session.getUserId();
         long messageId = System.currentTimeMillis();
-        room.addMessage(senderId,messageContent);
+        room.addMessage(senderId, messageContent);
 
+        // 직접 메시지를 전송하는 방식이 아닌 큐에 넣고 끝냄. 대규모 트래픽 대비
         messageQueueManager.submit(new BroadcastMessage(room, senderId, messageContent, messageId));
 
         sendSuccessResponse(session, roomId, messageId);
@@ -65,7 +70,7 @@ public class SendMessageCommand implements Command {
         payload.getData().put("roomId", roomId);
         payload.getData().put("messageId", messageId);
 
-        Message response = new Message("0", header, payload);
+        Message response = new Message(header, payload);
 
         try {
             MessageCodec.sendMessage(session.getSocket().getOutputStream(), response);

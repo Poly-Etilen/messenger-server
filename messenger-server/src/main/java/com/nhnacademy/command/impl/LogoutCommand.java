@@ -52,7 +52,7 @@ public class LogoutCommand implements Command {
         MessagePayload payload = new MessagePayload();
         payload.getData().put(MessageKey.RESULT, "ok");
 
-        Message message = new Message("0", header, payload);
+        Message message = new Message(header, payload);
 
         try {
             MessageCodec.sendMessage(session.getSocket().getOutputStream(), message);

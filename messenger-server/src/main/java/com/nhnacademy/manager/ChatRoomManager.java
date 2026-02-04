@@ -21,7 +21,7 @@ public class ChatRoomManager {
     private final Map<String, ChatRoom> roomMaps = new ConcurrentHashMap<>();
 
     public ChatRoom createRoom(String name) {
-        String id = UUID.randomUUID().toString();
+        String id = UUID.randomUUID().toString(); // 전역적으로 유일한 방 ID 및 이름 저장
         ChatRoom room = new ChatRoom(id, name);
         roomMaps.put(id, room);
 
@@ -29,6 +29,7 @@ public class ChatRoomManager {
         return room;
     }
 
+    // Join이나 메시지 송신용
     public ChatRoom getRoom(String id) {
         return roomMaps.get(id);
     }
