@@ -91,6 +91,6 @@ public class ServerTestSupport {
         if (data != null) {
             payload.getData().putAll(data);
         }
-        return  new Message("0", header, payload);
+        return  new Message(header, payload);
     }
 }

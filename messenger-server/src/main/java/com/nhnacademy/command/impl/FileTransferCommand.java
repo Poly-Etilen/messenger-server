@@ -88,6 +88,6 @@ public class FileTransferCommand implements Command {
         MessagePayload payload = new MessagePayload();
         payload.getData().put("code", code);
         payload.getData().put(MessageKey.REASON, message);
-        return new Message("0", header, payload);
+        return new Message(header, payload);
     }
 }
