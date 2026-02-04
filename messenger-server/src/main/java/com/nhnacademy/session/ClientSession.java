@@ -117,7 +117,7 @@ public class ClientSession implements Runnable, MessageObserver {
         payload.getData().put(MessageKey.RESULT, "fail");
         payload.getData().put(MessageKey.REASON, e.getMessage());
 
-        Message response = new Message("0", header, payload);
+        Message response = new Message(header, payload);
         sendMessage(response);
     }
 
@@ -125,7 +125,7 @@ public class ClientSession implements Runnable, MessageObserver {
         MessageHeader header = new MessageHeader(MessageType.ERROR, LocalDateTime.now());
         MessagePayload payload = new MessagePayload();
         payload.getData().put(MessageKey.MESSAGE, message);
-        sendMessage(new Message("0", header, payload));
+        sendMessage(new Message(header, payload));
     }
 
     public void sendMessage(Message message) {
@@ -152,7 +152,7 @@ public class ClientSession implements Runnable, MessageObserver {
         payload.getData().put(MessageKey.FILE_NAME, null);
         payload.getData().put(MessageKey.FILE_SIZE, 0);
 
-        Message response = new Message("0", header, payload);
+        Message response = new Message(header, payload);
 
         try {
             MessageCodec.sendMessage(this.socket.getOutputStream(), response);

@@ -20,7 +20,7 @@ public class PayloadExtractorTest {
         if (key != null) {
             payload.getData().put(key, value);
         }
-        return new Message("0", header, payload);
+        return new Message(header, payload);
     }
 
     @Test
