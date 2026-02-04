@@ -47,6 +47,7 @@ public class ChatRoomUserListCommand implements Command {
             throw new NotAuthorizedException();
         }
 
+        // 채팅방 유저 리스트 보내기
         List<String> userList = room.getSessions().stream()
                 .map(ClientSession::getUserId)
                 .toList();

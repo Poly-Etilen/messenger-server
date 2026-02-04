@@ -22,7 +22,7 @@ import java.time.LocalDateTime;
 @LoginRequired
 @CommandMapping(MessageType.FILE_TRANSFER)
 public class FileTransferCommand implements Command {
-    private static final long MAX_FILE_SIZE = 10L * 1024 * 1024;
+    private static final long MAX_FILE_SIZE = 10L * 1024 * 1024; // 10MB
 
     @Inject
     private ChatRoomManager chatRoomManager;
@@ -31,12 +31,16 @@ public class FileTransferCommand implements Command {
     public void execute(Message request) {
         ClientSession session = SessionHolder.get();
 
+        // 요청으로부터 방ID, 파일 이름, 파일 데이터를 추출함
         String roomId = PayloadExtractor.getRequired(request, MessageKey.ROOM_ID);
         String fileName = PayloadExtractor.getRequired(request, MessageKey.FILE_NAME);
         String fileData = PayloadExtractor.getRequired(request, MessageKey.FILE_DATA);
 
+        // Base64 인코딩은 바이너리 데이터 3바이트를 4개로 변환함. -> 용량이 33% 늘어남
+        // 원본 파일의 크기를 알기 위해선 문자열 길이의 * 0.75 (3/4)를 계산하여 역추적함
         long estimatedSize = (long) (fileData.length() * 0.75);
 
+        // 10MB 이상의 파일인 거부함
         if (estimatedSize > MAX_FILE_SIZE) {
             log.warn("파일 전송 실패: 용량 초과 (User={}, Size={} bytes)", session.getUserId(), estimatedSize);
             session.sendMessage(createErrorMessage("FILE.SIZE_EXCEEDED", "파일 크기가 10MB를 초과했습니다."));

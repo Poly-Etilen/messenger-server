@@ -35,6 +35,7 @@ public class LogoutCommand implements Command {
         String userId = session.getUserId();
 
         String currentRoomId = session.getCurrentRoomId();
+        // 현재 채팅방에 있으면 채팅방을 나감
         if (currentRoomId != null) {
             ChatRoom room = chatRoomManager.getRoom(currentRoomId);
             if (room != null) {
@@ -44,6 +45,7 @@ public class LogoutCommand implements Command {
             session.setCurrentRoomId(null);
         }
 
+        // 그래도 유저 ID가 있다면 세션을 제거함
         if (userId != null) {
             sessionManager.removeSession(userId);
         }
