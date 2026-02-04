@@ -21,7 +21,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 public class MessageQueueManager {
     @Getter
     private static final MessageQueueManager instance = new MessageQueueManager();
-    private final BlockingQueue<BroadcastMessage> messageQueue = new LinkedBlockingQueue<>();
+    private final BlockingQueue<BroadcastMessage> messageQueue = new LinkedBlockingQueue<>(10000);
     private final Thread workerThread;
 
     private MessageQueueManager() {

@@ -34,9 +34,11 @@ public class ListRoomCommand implements Command {
     @Override
     public void execute(Message request) {
         ClientSession session = SessionHolder.get();
+        // 메모리에 있는 모든 방 객체를 가져옴
         List<ChatRoom> rooms = chatRoomManager.getAllRooms();
 
         List<Map<String, Object>> roomInfoList = new ArrayList<>();
+        // 클라이언트 UI에 필요한 정보만 추출해서 Map에 담음
         for (ChatRoom room : rooms) {
             Map<String, Object> roomInfo = new HashMap<>();
             roomInfo.put(MessageKey.ROOM_ID, room.getId());
