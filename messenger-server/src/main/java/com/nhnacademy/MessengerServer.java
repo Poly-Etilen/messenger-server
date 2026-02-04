@@ -29,8 +29,10 @@ public class MessengerServer {
 
             while (!Thread.currentThread().isInterrupted()) {
                 try {
+                    // 소켓을 열고 새로운 클라이언트의 연결을 기다림
                     Socket clientSocket = socket.accept();
                     log.info("새로운 클라이언트 접속: {}", clientSocket.getInetAddress());
+                    // 새로운 클라이언트가 접속시 객체 생성과 스레드 할당
                     ClientSession session = new ClientSession(clientSocket, null, commandMap);
                     Thread sessionThread = new Thread(session);
                     sessionThread.start();
@@ -54,7 +56,9 @@ public class MessengerServer {
             }
         }
 
+        // 의존성을 주입받음
         Injector injector = Guice.createInjector(new MessengerModule());
+        // MessageQueue를 시작시킴
         MessageQueueManager queueManager = injector.getInstance(MessageQueueManager.class);
         queueManager.start();
 

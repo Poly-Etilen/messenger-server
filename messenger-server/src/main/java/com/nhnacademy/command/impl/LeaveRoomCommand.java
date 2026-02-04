@@ -30,22 +30,26 @@ public class LeaveRoomCommand implements Command {
     public void execute(Message request) {
         ClientSession session = SessionHolder.get();
 
+        // 요청에서 방 ID를 추출함
         String roomId = PayloadExtractor.getRequired(request, MessageKey.ROOM_ID);
+        // 나갈 방이 없을 경우 현재 있는 방을 기준으로함.
         if (roomId == null) {
             roomId = session.getCurrentRoomId();
         }
 
+        // 그래도 방이 없다면 에러 발생
         if (roomId == null) {
             log.error("방 나가기 실패: 참여 중인 방이 없습니다.");
             return;
         }
 
+        // 현재 참여중인 채팅방 요청의 방ID를 통해 방을 가져옴
         ChatRoom room = chatRoomManager.getRoom(roomId);
         if (room != null) {
-            room.removeSession(session);
-            notifyLeaveMember(room, session.getUserId(), roomId);
+            room.removeSession(session); // 세션을 제거함
+            notifyLeaveMember(room, session.getUserId(), roomId); // 방에 있는 모든 클라이언트에게 퇴장 메시지를 보냄
         }
-        session.setCurrentRoomId(null);
+        session.setCurrentRoomId(null); // 현제 세션을 null로 설정함
 
         sendSuccessResponse(session);
         log.info("방 나가기 완료: user={}, room={}", session.getUserId(), roomId);
@@ -58,7 +62,7 @@ public class LeaveRoomCommand implements Command {
         payload.getData().put(MessageKey.ROOM_ID, roomId);
         payload.getData().put(MessageKey.USER_ID, userId);
 
-        Message message = new Message("0", header, payload);
+        Message message = new Message(header, payload);
 
         for (ClientSession member : room.getSessions()) {
             member.sendMessage(message);
@@ -70,6 +74,6 @@ public class LeaveRoomCommand implements Command {
         MessagePayload payload = new MessagePayload();
         payload.getData().put(MessageKey.RESULT, "ok");
 
-        session.sendMessage(new Message("0", header, payload));
+        session.sendMessage(new Message(header, payload));
     }
 }

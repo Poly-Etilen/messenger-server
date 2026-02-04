@@ -34,20 +34,25 @@ public class JoinRoomCommand implements Command {
     public void execute(Message request) {
         ClientSession session = SessionHolder.get();
 
+        // 요청으로부터 방 ID를 추출함
         String roomId = PayloadExtractor.getRequired(request, MessageKey.ROOM_ID);
+        // 방도 가져옴
         ChatRoom room = chatRoomManager.getRoom(roomId);
 
+        // 방어 로직
         if (room == null) {
             throw new RoomNotFoundException(roomId);
         }
 
+        // 이미 방에 참여중인지 검증
         if (room.getSessions().contains(session)) {
             throw new AlreadyJoinedException();
         }
 
-        room.addSession(session);
+        room.addSession(session); // 방의 참여자 목록에 자신을 추가함
         sendSuccess(session, room);
 
+        // 시스템 메시지를 해당 방의 모든 사람에게 전송
         notifyEnterMember(room, session.getUserId(), roomId);
     }
 
@@ -59,7 +64,7 @@ public class JoinRoomCommand implements Command {
         payload.getData().put(MessageKey.SENDER_ID, "System");
         payload.getData().put(MessageKey.USER_NAME, userId);
 
-        Message message = new Message("0", header, payload);
+        Message message = new Message(header, payload);
 
         for (ClientSession member : room.getSessions()) {
             member.sendMessage(message);
@@ -74,7 +79,7 @@ public class JoinRoomCommand implements Command {
         payload.getData().put(MessageKey.ROOM_ID, room.getId());
         payload.getData().put(MessageKey.ROOM_NAME, room.getName());
 
-        Message response = new Message("0", header, payload);
+        Message response = new Message(header, payload);
         sendMessage(session, response);
     }
 

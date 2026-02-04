@@ -70,7 +70,7 @@ public class FileTransferCommand implements Command {
         payload.getData().put(MessageKey.FILE_NAME, fileName);
         payload.getData().put(MessageKey.FILE_DATA, fileData);
 
-        return new Message("0", header, payload);
+        return new Message(header, payload);
     }
 
     private void sendSuccessResponse(ClientSession session, String roomId, String fileName) {
@@ -80,7 +80,7 @@ public class FileTransferCommand implements Command {
         payload.getData().put(MessageKey.FILE_NAME, fileName);
         payload.getData().put(MessageKey.RESULT, "ok");
 
-        session.sendMessage(new Message("0", header, payload));
+        session.sendMessage(new Message(header, payload));
     }
 
     private Message createErrorMessage(String code, String message) {

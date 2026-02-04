@@ -31,6 +31,7 @@ public class MessageQueueManager {
     }
 
     public void start() {
+        // start 메서드가 호출되면 데몬 스레드가 시작함
         if (!workerThread.isAlive()) {
             workerThread.start();
             log.info("Message Queue Worker 시작됨");
@@ -42,6 +43,7 @@ public class MessageQueueManager {
     }
 
     private void processQueue() {
+        // 메시지가 들어올 때까지 대기하다가 메시지가 오면 꺼내서 처리함
         while (!Thread.currentThread().isInterrupted()) {
             try {
                 BroadcastMessage msg = messageQueue.take();

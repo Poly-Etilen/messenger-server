@@ -14,8 +14,10 @@ import org.reflections.Reflections;
 import java.util.Set;
 
 public class MessengerModule extends AbstractModule {
+    // MessengerModule은 Google Guice의 설정을 담당함
     @Override
     protected void configure() {
+        // 서버 실행 시 의존성 주입
         bind(ChatRoomManager.class).toInstance(ChatRoomManager.getInstance());
         bind(SessionManager.class).toInstance(SessionManager.getInstance());
         bind(UserRepository.class).asEagerSingleton();
@@ -23,11 +25,13 @@ public class MessengerModule extends AbstractModule {
 
         MapBinder<MessageType, Command> mapBinder = MapBinder.newMapBinder(binder(), MessageType.class, Command.class);
 
+        // Reflections를 통해 command 들을 스캔함
         Reflections reflections = new Reflections("com.nhnacademy.command.impl");
         Set<Class<?>> commandClasses = reflections.getTypesAnnotatedWith(CommandMapping.class);
 
         for (Class<?> clazz : commandClasses) {
             CommandMapping commandMapping = clazz.getAnnotation(CommandMapping.class);
+            // 어노테이션이 붙은 command 클래스를 찾아 MessageType을 카로 하는 Map 형태로 자동 바인딩 함
             mapBinder.addBinding(commandMapping.value()).to((Class<? extends Command>) clazz);
         }
     }

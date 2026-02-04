@@ -31,19 +31,19 @@ public class LoginCommand implements Command {
     @Inject
     private UserRepository userRepository;
 
-    private static final Map<String, String> userDatabase = new HashMap<>();
-
     @Override
     public void execute(Message request) {
         ClientSession session = SessionHolder.get();
 
         Map<String, Object> data = request.getPayload().getData();
 
+        // id와 password를 꺼냄
         String userId = PayloadExtractor.getRequired(request, MessageKey.USER_ID);
         String password = PayloadExtractor.getRequired(request, MessageKey.PASSWORD);
 
         log.info("로그인 시도: {}", userId);
 
+        // 이미 접속중인 유저인지 확인
         if (sessionManager.isLoggedIn(userId)) {
             throw new DuplicateLoginException(userId);
         }
@@ -57,6 +57,7 @@ public class LoginCommand implements Command {
 
     private void handleSuccess(ClientSession session, String userId) {
         session.setUserId(userId);
+        // 현재 연결된 세션을 서버의 활성화된 사용자 목록에 추가함
         sessionManager.addSession(userId, session);
 
         MessageHeader header = new MessageHeader(MessageType.LOGIN_SUCCESS, LocalDateTime.now());
@@ -65,8 +66,9 @@ public class LoginCommand implements Command {
         payload.getData().put("result", "ok");
         payload.getData().put("userId", userId);
 
-        Message response = new Message("0", header, payload);
+        Message response = new Message(header, payload);
 
+        // 로그인 성공 시 LOGIN-SUCCESS를 클라이언트에게 보냄
         sendMassage(session, response);
         log.info("로그인 성공: {}", userId);
     }
@@ -78,7 +80,7 @@ public class LoginCommand implements Command {
         payload.getData().put("result", "fail");
         payload.getData().put("reason", "아이디 또는 비밀번호가 틀렸습니다.");
 
-        Message response = new Message("0", header, payload);
+        Message response = new Message(header, payload);
 
         sendMassage(session, response);
         log.warn("로그인 실패: {}", userId);

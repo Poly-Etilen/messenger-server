@@ -34,9 +34,12 @@ public class ChatRoomUserListCommand implements Command {
     public void execute(Message request) {
         ClientSession session = SessionHolder.get();
 
+        // 요청에서 방ID를 추출함
         String roomId = PayloadExtractor.getRequired(request, MessageKey.ROOM_ID);
 
+        // 방 ID를 통해 방을 가져옴
         ChatRoom room = chatRoomManager.getRoom(roomId);
+        // 방이 없으면 예외 발생
         if (room == null) {
             throw new RoomNotFoundException(roomId);
         }
@@ -56,7 +59,7 @@ public class ChatRoomUserListCommand implements Command {
 
         payload.getData().put(MessageKey.ROOM_ID, roomId);
         payload.getData().put(MessageKey.USER_LIST, userList);
-        Message response = new Message("0", messageHeader, payload);
+        Message response = new Message(messageHeader, payload);
 
         try {
             MessageCodec.sendMessage(session.getSocket().getOutputStream(), response);

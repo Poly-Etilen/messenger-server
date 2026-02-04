@@ -50,7 +50,7 @@ public class ListRoomCommand implements Command {
         MessagePayload payload = new MessagePayload();
         payload.getData().put(MessageKey.ROOM_LIST, roomInfoList);
 
-        Message response = new Message("0", header, payload);
+        Message response = new Message(header, payload);
 
         try {
             MessageCodec.sendMessage(session.getSocket().getOutputStream(), response);

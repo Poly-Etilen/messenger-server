@@ -52,19 +52,23 @@ public class ClientSession implements Runnable, MessageObserver {
         SessionHolder.set(this);
         try {
             while (socket.isConnected() && !socket.isClosed()) {
+                // 소켓에서 메시지를 읽어옴
                 Message message = MessageCodec.readMessage(socket.getInputStream());
 
                 if (message == null) break;
-
+                // 메시지 헤더의 MessageType을 확인
                 MessageType type = message.getHeader().getMessageType();
                 log.debug("[{}] 수신: {}", userId, type);
 
+                //commandMap에서 해당 타입에 맞는 객체를 찾아옴
                 Command command = commandMap.get(type);
                 if (command != null) {
                     try {
+                        // @LoginRequired가 있는지 확인함
                         checkPermission(command);
                         command.execute(message);
                     } catch (MessengerException e) {
+                        // 중복 로그인, 방 없음 등 비즈니스 로직 상의 오류 분류
                         handleMessengerException(e);
                     } catch (Exception e) {
                         log.error("알 수 없는 서버 에러", e);
@@ -107,6 +111,7 @@ public class ClientSession implements Runnable, MessageObserver {
     private void handleMessengerException(MessengerException e) {
         log.warn("요청 처리 실패: {}", e.getMessage());
 
+        // ErrorType을 사용하여 클라이언트에게 fail 실패 응답을 보냄
         MessageHeader header = new MessageHeader(e.getErrorType(), LocalDateTime.now());
         MessagePayload payload = new MessagePayload();
         payload.getData().put(MessageKey.RESULT, "fail");
@@ -133,6 +138,9 @@ public class ClientSession implements Runnable, MessageObserver {
 
     @Override
     public void onMessage(BroadcastMessage message) {
+        // 실시간 알림
+        // 다른 클라이언트가 보낸 메시지가 현재 세견의 사용자에게 전달되어야 할 때 호출됨
+        // BroadcastMessage를 클라이언트용 Message로 변환하여 소켓으로 전송함.
         MessageHeader header = new MessageHeader(MessageType.PUSH_NEW_MESSAGE, LocalDateTime.now());
         MessagePayload payload = new MessagePayload();
 
