@@ -1,13 +1,12 @@
-package com.nhnacademy.messenger.client.handler;
+package com.nhnacademy.messenger.client.event.handler;
 
 import com.nhnacademy.constant.MessageKey;
 import com.nhnacademy.domain.Header.MessageType;
 import com.nhnacademy.domain.Message;
 import com.nhnacademy.messenger.client.ClientConnection;
+import com.nhnacademy.messenger.client.event.listener.ClientEventListener;
 import com.nhnacademy.messenger.client.request.Request;
 import com.nhnacademy.messenger.client.request.RequestFactory;
-import com.nhnacademy.ui.form.impl.ClientGUI;
-import javafx.application.Platform;
 import javafx.stage.Stage;
 import lombok.extern.slf4j.Slf4j;
 
@@ -17,24 +16,18 @@ import java.util.Map;
 
 @Slf4j
 public class ClientEventHandler {
-    private final ClientGUI view;
     private String myUserId;
     private String roomId;
-    private String senderId;
-    private String receiverId;
     private final ClientConnection connection;
+    ClientEventListener listener;
 
-    String content;
-
-    public ClientEventHandler(ClientGUI view) {
-        this.view = view;
+    public ClientEventHandler(ClientEventListener listener) {
+        this.listener = listener;
         try {
             this.connection = new ClientConnection("localhost", 8000, this);
         } catch (IOException e) {
             log.error("서버 연결 실패", e);
-            Platform.runLater(() ->
-                    view.showError("연결 실패", "서버에 연결할 수 없습니다.\n서버가 실행 중인지 확인해주세요.")
-            );
+            listener.showError("연결 실패", "서버에 연결할 수 없습니다. 서버가 실행 중인지 확인해주세요.");
             throw new RuntimeException("서버 연결 실패", e);
         }
     }
@@ -56,7 +49,7 @@ public class ClientEventHandler {
     }
 
     public void onRoomClicked(String roomName) {
-        String selectedRoomId = view.getRoomIdByName(roomName);
+        String selectedRoomId = listener.getRoomIdByName(roomName);
 
         if (selectedRoomId == null) {
             log.error("roomId를 찾을 수 없습니다. roomName={}", roomName);
@@ -160,26 +153,26 @@ public class ClientEventHandler {
     private void handlePushRoomEnter(Map<String, Object> data) {
         String enterUser = (String) data.get(MessageKey.USER_NAME);
         if (enterUser != null) {
-            view.writeMessage("[알림] " + enterUser + " 님이 입장하셨습니다.");
+            listener.writeMessage("[알림] " + enterUser + " 님이 입장하셨습니다.");
         }
         sendRequest(RequestFactory.roomMemberListRequest(roomId));
     }
 
     private void handlePushNewMessage(Map<String, Object> data) {
-        content = (String) data.get(MessageKey.CONTENT);
-        view.writeMessage(content);
+        String content = (String) data.get(MessageKey.CONTENT);
+        listener.writeMessage(content);
     }
 
     private void handleWhisperRecived(Map<String, Object> data) {
-        senderId = (String) data.get("senderId");
-        content = (String) data.get("content");
+        String senderId = (String) data.get("senderId");
+        String content = (String) data.get("content");
         receiveMessage("Whisper [" + senderId + "] : " + content);
     }
 
     private void handlePushRoomExit(Map<String, Object> data) {
         String exitUser = (String) data.get(MessageKey.USER_ID);
         if (exitUser != null) {
-            view.writeMessage("[알림] " + exitUser + " 님이 퇴장하셨습니다.");
+            listener.writeMessage("[알림] " + exitUser + " 님이 퇴장하셨습니다.");
         }
         sendRequest(RequestFactory.roomMemberListRequest(roomId));
     }
@@ -191,19 +184,19 @@ public class ClientEventHandler {
             return;
         }
         log.debug(" 채팅 히스토리 ");
-        view.writeMessage("채팅 히스토리 출력");
+        listener.writeMessage("채팅 히스토리 출력");
         for (Map<String, String> chat : history) {
             String time = chat.get("timestamp");
             String senderId = chat.get("senderId");
             String content = chat.get("message");
             log.debug("{} {}: {}", time, senderId, content);
-            view.writeMessage(time + " " + content);
+            listener.writeMessage(time + " " + content);
         }
     }
 
     private void handleWhisperSuccess(Map<String, Object> data) {
-        receiverId = (String) data.get("receiverId");
-        content = (String) data.get("content");
+        String receiverId = (String) data.get("receiverId");
+        String content = (String) data.get("content");
         receiveMessage("Whisper [to " + receiverId + "] : " + content);
     }
 
@@ -213,8 +206,8 @@ public class ClientEventHandler {
     }
 
     private void handleReciveMessage(Map<String, Object> data) {
-        senderId = (String) data.get("senderId");
-        content = (String) data.get("message");
+        String senderId = (String) data.get("senderId");
+        String content = (String) data.get("message");
         log.debug("메세지 수신 성공 roomId: {}, senderID: {}", roomId, senderId);
         receiveMessage(content);
         if ("System".equals(senderId)) {
@@ -223,7 +216,7 @@ public class ClientEventHandler {
     }
 
     private void handleLogoutSuccess() {
-        view.logout();
+        listener.onLogout();
     }
 
     private void handleRoomUserList(Map<String, Object> data) {
@@ -233,12 +226,12 @@ public class ClientEventHandler {
         }
         List<String> roomUserList = (List<String>) data.get("userList");
         log.debug("서버 수신 유저 리스트: {}", roomUserList);
-        view.updateRoomMemberList(roomUserList);
+        listener.updateRoomUserList(roomUserList);
     }
 
     private void handleUserList(Map<String, Object> data) {
         List<Map<String, Object>> userListData = (List<Map<String, Object>>) data.get("userList");
-        view.updateMemberList(userListData);
+        listener.updateUserList(userListData);
         for (Map<String, Object> userList : userListData) {
             String userId = (String) userList.get("id");
             log.debug(userId);
@@ -246,19 +239,19 @@ public class ClientEventHandler {
     }
 
     private void handleExitRoom() {
-        view.showRoomList();
+        listener.onShowRoomList();
         loadRoomListScene();
     }
 
     private void handleEnterRoom(Map<String, Object> data) {
         this.roomId = (String) data.get("roomId");
-        view.showEnterRoom();
+        listener.onEnterRoom();
         sendRequest(RequestFactory.roomMemberListRequest(roomId));
     }
 
     private void handleRoomList(Map<String, Object> data) {
         List<Map<String, Object>> rooms = (List<Map<String, Object>>) data.get("roomList");
-        view.updateRoomList(rooms);
+        listener.updateRoomList(rooms);
     }
 
     private void handleLoginFail(Map<String, Object> data) {
@@ -266,12 +259,12 @@ public class ClientEventHandler {
         if (reason == null) {
             reason = "로그인 실패";
         }
-        view.showError("로그인 실패", reason);
+        listener.showError("로그인 실패", reason);
     }
 
     private void handleLoginSuccess() {
         log.info("로그인 성공");
-        view.setCurrentUser(myUserId);
+        listener.onLoginSuccess(myUserId);
         handleExitRoom();
     }
 
@@ -287,7 +280,7 @@ public class ClientEventHandler {
         switch (command) {
             case "/help":
             case "/도움말":
-                view.writeMessage("""
+                listener.writeMessage("""
                         [System] 명령어 목록:
                         /whisper <아이디> <메시지>
                         /history
@@ -299,7 +292,7 @@ public class ClientEventHandler {
             case "/w":
             case "/귓":
                 if (parts.length < 3) {
-                    view.writeMessage("[System] 사용법: /whisper <아이디> <메시지>");
+                    listener.writeMessage("[System] 사용법: /whisper <아이디> <메시지>");
                 } else {
                     sendWhisperMessage(parts[1], parts[2]);
                 }
@@ -317,12 +310,12 @@ public class ClientEventHandler {
                 onLogoutClicked();
                 break;
             default:
-                view.writeMessage("[System] 알 수 없는 명령어입니다: " + command);
+                listener.writeMessage("[System] 알 수 없는 명령어입니다: " + command);
         }
     }
 
     private void receiveMessage(String content) {
-        view.writeMessage(content); // 채팅메세지 UI화면에 추가
+        listener.writeMessage(content); // 채팅메세지 UI화면에 추가
 
     }
 

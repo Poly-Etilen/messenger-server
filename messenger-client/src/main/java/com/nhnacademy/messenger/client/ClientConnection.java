@@ -1,7 +1,7 @@
 package com.nhnacademy.messenger.client;
 
 import com.nhnacademy.domain.Message;
-import com.nhnacademy.messenger.client.handler.ClientEventHandler;
+import com.nhnacademy.messenger.client.event.handler.ClientEventHandler;
 import com.nhnacademy.util.MessageCodec;
 import javafx.application.Platform;
 import lombok.extern.slf4j.Slf4j;
