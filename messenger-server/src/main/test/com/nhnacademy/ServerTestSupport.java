@@ -1,6 +1,7 @@
 package com.nhnacademy;
 
 import com.google.inject.Inject;
+import com.nhnacademy.command.Command;
 import com.nhnacademy.context.SessionHolder;
 import com.nhnacademy.domain.Header.MessageHeader;
 import com.nhnacademy.domain.Header.MessageType;
@@ -15,16 +16,20 @@ import com.nhnacademy.session.ClientSession;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.net.Socket;
+import java.nio.ByteBuffer;
+import java.nio.channels.SocketChannel;
 import java.time.LocalDateTime;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class ServerTestSupport {
@@ -43,6 +48,12 @@ public class ServerTestSupport {
     protected MessageQueueManager messageQueueManager;
     @Mock
     protected Socket socket;
+    @Mock
+    protected SocketChannel socketChannel;
+    @Mock
+    protected Map<MessageType, Command> commandMap;
+    @Mock
+    protected ExecutorService workerThreadPool;
 
     // 서버의 응답을 캡처하기 위한 출력 스트림
     protected ByteArrayOutputStream out;
@@ -52,22 +63,23 @@ public class ServerTestSupport {
     @BeforeEach
     public void setup() throws IOException {
         closeable = MockitoAnnotations.openMocks(this);
-        
+
         // 출력 스트림 초기화
         out = new ByteArrayOutputStream();
-        
-        // 세션 및 소켓 Mock 설정
+
+        // Channel 및 Socket Mock 연결 설정
+        when(socketChannel.socket()).thenReturn(socket);
+        when(socketChannel.isOpen()).thenReturn(true);
+        // session.getSocketChannel() 호출 시 위에서 만든 mock socketChannel 반환
+        when(session.getSocketChannel()).thenReturn(socketChannel);
+
+        // Observer 설정
         when(session.getObserver()).thenReturn(observer);
-        when(session.getSocket()).thenReturn(socket);
-        when(socket.getOutputStream()).thenReturn(out);
-        when(session.getUserId()).thenReturn("testUser");
         when(observer.getUserId()).thenReturn("testUser");
+        when(session.getUserId()).thenReturn("testUser");
 
         // ThreadLocal 컨텍스트 설정
         SessionHolder.set(session);
-        
-        // Manager 싱글톤 초기화 (테스트 간 간섭 방지)
-        // 실제 구현에 따라 리셋 로직이 다를 수 있으나, 여기서는 Mock 주입으로 해결
     }
 
     @AfterEach
@@ -108,13 +120,29 @@ public class ServerTestSupport {
         }
         return new Message(header, payload);
     }
-    
+
     // 테스트용 Mock 세션 생성 도우미
     protected ClientSession createMockSession(String userId, ByteArrayOutputStream outputStream) throws IOException {
-        Socket mockSocket = Mockito.mock(Socket.class);
-        when(mockSocket.getOutputStream()).thenReturn(outputStream);
-        ClientSession mockSession = new ClientSession(mockSocket, null, null);
-        mockSession.setUserId(userId);
-        return mockSession;
+        SocketChannel mockChannel = mock(SocketChannel.class);
+        Socket mockSocket = mock(Socket.class);
+
+        when(mockChannel.socket()).thenReturn(mockSocket);
+        when(mockChannel.isOpen()).thenReturn(true);
+
+        if (outputStream != null) {
+            when(mockChannel.write(any(ByteBuffer.class))).thenAnswer(invocation -> {
+                ByteBuffer buffer = invocation.getArgument(0);
+                byte[] bytes = new byte[buffer.remaining()];
+                buffer.get(bytes);         // ByteBuffer에서 데이터 읽기 (position 이동)
+                outputStream.write(bytes); // ByteArrayOutputStream에 저장
+                return bytes.length;       // 쓴 바이트 수 반환
+            });
+        }
+
+        // 이제 commandMap과 workerThreadPool 필드가 존재하므로 에러가 발생하지 않음
+        ClientSession session = new ClientSession(mockChannel, commandMap, workerThreadPool);
+        session.setUserId(userId);
+
+        return session;
     }
 }

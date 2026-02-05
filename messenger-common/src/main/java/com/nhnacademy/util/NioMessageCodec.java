@@ -14,7 +14,7 @@ import java.util.List;
 public class NioMessageCodec {
 
     private static final ObjectMapper mapper = new ObjectMapper();
-    private static final String LENGTH_PREFIX = "message-length:";
+    private static final String LENGTH_PREFIX = "message-length";
 
     static  {
         mapper.registerModule(new JavaTimeModule());
@@ -58,7 +58,7 @@ public class NioMessageCodec {
     public static ByteBuffer encode(Message message) throws JsonProcessingException {
         String jsonPayload = mapper.writeValueAsString(message);
         byte[] payloadBytes = jsonPayload.getBytes(StandardCharsets.UTF_8);
-        String header = LENGTH_PREFIX + payloadBytes.length + "\n";
+        String header = LENGTH_PREFIX + ":" + payloadBytes.length + "\n";
         byte[] headerBytes = header.getBytes(StandardCharsets.UTF_8);
 
         ByteBuffer buffer = ByteBuffer.allocate(headerBytes.length + payloadBytes.length);
@@ -90,10 +90,23 @@ public class NioMessageCodec {
     }
 
     private static int parseContentLength(String line) {
-        String trimLine = line.trim();
-        if (trimLine.startsWith(LENGTH_PREFIX)) {
-            throw new  IllegalArgumentException("Invalid header format: " + line);
+        String cleanLine = line.trim();
+
+        // 1. BOM(Byte Order Mark) 제거 (안전장치)
+        cleanLine = cleanLine.replace("\uFEFF", "");
+
+        // 2. 콜론(:)을 기준으로 분리하여 정확히 파싱
+        String[] parts = cleanLine.split(":");
+
+        // 형식 검증: "키:값" 형태여야 하며, 키가 일치해야 함
+        if (parts.length != 2 || !parts[0].trim().equals(LENGTH_PREFIX)) {
+            throw new IllegalArgumentException("Invalid header format: " + line);
         }
-        return Integer.parseInt(trimLine.substring(LENGTH_PREFIX.length()));
+
+        try {
+            return Integer.parseInt(parts[1].trim());
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("Invalid content length value: " + parts[1]);
+        }
     }
 }
