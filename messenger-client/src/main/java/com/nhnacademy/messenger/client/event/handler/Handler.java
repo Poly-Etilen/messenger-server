@@ -1,4 +1,4 @@
-package com.nhnacademy.messenger.client.handler;
+package com.nhnacademy.messenger.client.event.handler;
 
 import com.nhnacademy.domain.Message;
 
