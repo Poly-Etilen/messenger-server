@@ -1,7 +1,7 @@
 package com.nhnacademy.ui.form.impl;
 
-import com.nhnacademy.messenger.client.event.handler.ClientEventHandler;
-import com.nhnacademy.messenger.client.event.listener.ClientEventListener;
+import com.nhnacademy.event.handler.ClientEventHandler;
+import com.nhnacademy.event.listener.ClientEventListener;
 import com.nhnacademy.ui.form.View;
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -222,11 +222,13 @@ public class ClientGUI extends Application implements View, ClientEventListener 
 
         roomNameField.setOnAction(e -> {
             this.roomName = roomNameField.getText();
-            eventHandler.createRoomClicked(createStage, roomName);
+            eventHandler.createRoomClicked(roomName);
+            createStage.close();
         });
         okBtn.setOnAction(e -> {
             this.roomName = roomNameField.getText();
-            eventHandler.createRoomClicked(createStage, roomName);
+            eventHandler.createRoomClicked(roomName);
+            createStage.close();
         });
 
         layout.getChildren().addAll(label, roomNameField, okBtn);

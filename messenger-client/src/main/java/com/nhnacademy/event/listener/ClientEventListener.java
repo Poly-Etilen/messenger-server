@@ -1,4 +1,4 @@
-package com.nhnacademy.messenger.client.event.listener;
+package com.nhnacademy.event.listener;
 
 import java.util.List;
 import java.util.Map;
@@ -15,7 +15,6 @@ public interface ClientEventListener {
 
     //조회
     String getRoomIdByName(String roomname);
-
 
 
 

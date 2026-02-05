@@ -1,6 +1,5 @@
-package com.nhnacademy.messenger.client.request;
-
-import com.nhnacademy.messenger.client.request.impl.*;
+package com.nhnacademy.request;
+import com.nhnacademy.request.impl.*;
 import lombok.NoArgsConstructor;
 
 
@@ -31,7 +30,7 @@ public class RequestFactory {
         return new LogoutRequest();
     }
 
-    public static Request memberListRqeust() {
+    public static Request memberListRequest() {
         return new MemberListRequest();
     }
 
