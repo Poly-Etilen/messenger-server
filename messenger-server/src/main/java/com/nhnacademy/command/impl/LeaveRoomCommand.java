@@ -12,6 +12,7 @@ import com.nhnacademy.domain.Message;
 import com.nhnacademy.domain.payload.MessagePayload;
 import com.nhnacademy.manager.ChatRoomManager;
 import com.nhnacademy.model.ChatRoom;
+import com.nhnacademy.observer.MessageObserver;
 import com.nhnacademy.session.ClientSession;
 import com.nhnacademy.util.PayloadExtractor;
 import lombok.extern.slf4j.Slf4j;
@@ -46,7 +47,7 @@ public class LeaveRoomCommand implements Command {
         // 현재 참여중인 채팅방 요청의 방ID를 통해 방을 가져옴
         ChatRoom room = chatRoomManager.getRoom(roomId);
         if (room != null) {
-            room.removeSession(session); // 세션을 제거함
+            room.removeSession(session.getObserver());
             notifyLeaveMember(room, session.getUserId(), roomId); // 방에 있는 모든 클라이언트에게 퇴장 메시지를 보냄
         }
         session.setCurrentRoomId(null); // 현제 세션을 null로 설정함
@@ -64,7 +65,7 @@ public class LeaveRoomCommand implements Command {
 
         Message message = new Message(header, payload);
 
-        for (ClientSession member : room.getSessions()) {
+        for (MessageObserver member : room.getSessions()) {
             member.sendMessage(message);
         }
     }

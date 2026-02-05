@@ -13,10 +13,8 @@ import com.nhnacademy.domain.payload.MessagePayload;
 import com.nhnacademy.manager.ChatRoomManager;
 import com.nhnacademy.model.ChatRoom;
 import com.nhnacademy.session.ClientSession;
-import com.nhnacademy.util.MessageCodec;
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -52,13 +50,6 @@ public class ListRoomCommand implements Command {
         MessagePayload payload = new MessagePayload();
         payload.getData().put(MessageKey.ROOM_LIST, roomInfoList);
 
-        Message response = new Message(header, payload);
-
-        try {
-            MessageCodec.sendMessage(session.getSocket().getOutputStream(), response);
-            log.info("방 목록 전송 완료: 요청자 -> {}", session.getUserId());
-        } catch (IOException e) {
-            log.error("방 목록 전송 실패", e);
-        }
+        session.getObserver().sendMessage(new Message(header, payload));
     }
 }
