@@ -1,7 +1,7 @@
 package com.nhnacademy.ui.form.impl;
 
-import com.nhnacademy.messenger.client.event.handler.ClientEventHandler;
-import com.nhnacademy.messenger.client.event.listener.ClientEventListener;
+import com.nhnacademy.event.handler.ClientEventHandler;
+import com.nhnacademy.event.listener.ClientEventListener;
 import com.nhnacademy.ui.form.View;
 import javafx.application.Application;
 import javafx.application.Platform;

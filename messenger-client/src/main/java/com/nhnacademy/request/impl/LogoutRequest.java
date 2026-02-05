@@ -1,19 +1,18 @@
-package com.nhnacademy.messenger.client.request.impl;
+package com.nhnacademy.request.impl;
 
 import com.nhnacademy.domain.Header.MessageHeader;
 import com.nhnacademy.domain.Header.MessageType;
 import com.nhnacademy.domain.Message;
 import com.nhnacademy.domain.payload.MessagePayload;
-import com.nhnacademy.messenger.client.request.Request;
+import com.nhnacademy.request.Request;
 
 import java.time.LocalDateTime;
 
-public class RoomListRequest implements Request {
+public class LogoutRequest implements Request {
     @Override
     public Message makeMessage() {
-        MessageHeader header = new MessageHeader(MessageType.CHAT_ROOM_LIST, LocalDateTime.now());
+        MessageHeader header = new MessageHeader(MessageType.LOGOUT, LocalDateTime.now());
         MessagePayload payload = new MessagePayload();
-
-        return new Message(header, payload);
+        return  new Message(header,payload);
     }
 }
