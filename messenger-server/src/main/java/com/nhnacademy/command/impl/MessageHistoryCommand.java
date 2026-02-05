@@ -58,11 +58,7 @@ public class MessageHistoryCommand implements Command {
         payload.getData().put(MessageKey.HISTORY, historyData);
         Message response = new Message(messageHeader, payload);
 
-        try {
-            MessageCodec.sendMessage(session.getOutputStream(), response);
-            log.info("메시지 기록 전송 완료: room={}, count={}", roomId, historyData.size());
-        } catch (IOException e) {
-            log.error("메시지 기록 전송 실패", e);
-        }
+        session.getObserver().sendMessage(response);
+        log.info("메시지 기록 전송 완료: room={}, count={}", roomId, historyData.size());
     }
 }

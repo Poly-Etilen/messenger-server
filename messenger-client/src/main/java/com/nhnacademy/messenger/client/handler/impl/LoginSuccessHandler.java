@@ -4,7 +4,6 @@ import com.nhnacademy.domain.Message;
 import com.nhnacademy.messenger.client.handler.Handler;
 import com.nhnacademy.session.ClientSession;
 import com.nhnacademy.ui.form.impl.ClientGUI;
-import org.checkerframework.checker.units.qual.C;
 
 public class LoginSuccessHandler implements Handler {
     private final ClientGUI view;

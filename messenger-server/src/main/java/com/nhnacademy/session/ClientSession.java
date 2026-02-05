@@ -11,40 +11,40 @@ import com.nhnacademy.domain.payload.MessagePayload;
 import com.nhnacademy.exception.MessengerException;
 import com.nhnacademy.exception.NotAuthorizedException;
 import com.nhnacademy.manager.SessionManager;
-import com.nhnacademy.model.BroadcastMessage;
-import com.nhnacademy.observer.MessageObserver;
 import com.nhnacademy.util.MessageCodec;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
-import java.io.OutputStream;
 import java.net.Socket;
 import java.time.LocalDateTime;
 import java.util.Map;
 
 @Getter
 @Slf4j
-public class ClientSession implements Runnable, MessageObserver {
+public class ClientSession implements Runnable {
     private final Socket socket;
+    private final Map<MessageType, Command> commandMap;
 
-    @Setter
-    private String userId;
+    private final ClientMessageObserver observer;
 
     @Setter
     private String currentRoomId;
 
-    private final Map<MessageType, Command> commandMap;
-
     public ClientSession(Socket socket, String userId, Map<MessageType, Command> commandMap) {
         this.socket = socket;
-        this.userId = userId;
         this.commandMap = commandMap;
+        this.observer = new ClientMessageObserver(socket);
+        setUserId(userId);
     }
 
-    public OutputStream getOutputStream() throws IOException {
-        return socket.getOutputStream();
+    public void setUserId(String userId) {
+        this.observer.setUserId(userId);
+    }
+
+    public String getUserId() {
+        return this.observer.getUserId();
     }
 
     @Override
@@ -58,7 +58,7 @@ public class ClientSession implements Runnable, MessageObserver {
                 if (message == null) break;
                 // 메시지 헤더의 MessageType을 확인
                 MessageType type = message.getHeader().getMessageType();
-                log.debug("[{}] 수신: {}", userId, type);
+                log.debug("[{}] 수신: {}", getUserId(), type);
 
                 //commandMap에서 해당 타입에 맞는 객체를 찾아옴
                 Command command = commandMap.get(type);
@@ -79,7 +79,7 @@ public class ClientSession implements Runnable, MessageObserver {
                 }
             }
         } catch (IOException e) {
-            log.info("연결 종료: {}", userId);
+            log.info("연결 종료: {}", getUserId());
         } finally {
             SessionHolder.clear();
             disconnect();
@@ -88,8 +88,8 @@ public class ClientSession implements Runnable, MessageObserver {
     }
 
     private void disconnect() {
-        if (userId != null) {
-            SessionManager.getInstance().removeSession(userId);
+        if (getUserId() != null) {
+            SessionManager.getInstance().removeSession(getUserId());
         }
         try {
             if(socket != null && !socket.isClosed()) {
@@ -102,7 +102,7 @@ public class ClientSession implements Runnable, MessageObserver {
 
     private void checkPermission(Command command) {
         if (command.getClass().isAnnotationPresent(LoginRequired.class)) {
-            if (this.userId == null) {
+            if (getUserId() == null) {
                 throw new NotAuthorizedException();
             }
         }
@@ -117,8 +117,7 @@ public class ClientSession implements Runnable, MessageObserver {
         payload.getData().put(MessageKey.RESULT, "fail");
         payload.getData().put(MessageKey.REASON, e.getMessage());
 
-        Message response = new Message(header, payload);
-        sendMessage(response);
+        observer.sendMessage(new Message(header, payload));
     }
 
     private void sendError(String message) {
@@ -133,31 +132,6 @@ public class ClientSession implements Runnable, MessageObserver {
             MessageCodec.sendMessage(socket.getOutputStream(), message);
         } catch (IOException e) {
             log.error("응답 전송 실패", e);
-        }
-    }
-
-    @Override
-    public void onMessage(BroadcastMessage message) {
-        // 실시간 알림
-        // 다른 클라이언트가 보낸 메시지가 현재 세견의 사용자에게 전달되어야 할 때 호출됨
-        // BroadcastMessage를 클라이언트용 Message로 변환하여 소켓으로 전송함.
-        MessageHeader header = new MessageHeader(MessageType.PUSH_NEW_MESSAGE, LocalDateTime.now());
-        MessagePayload payload = new MessagePayload();
-
-        payload.getData().put(MessageKey.ROOM_ID, message.getChatRoom().getId());
-        payload.getData().put(MessageKey.MESSAGE_ID, message.getMessageId());
-        payload.getData().put(MessageKey.SENDER_ID, message.getSenderId());
-        payload.getData().put(MessageKey.CONTENT, message.getContent());
-        payload.getData().put(MessageKey.TYPE, "TEXT");
-        payload.getData().put(MessageKey.FILE_NAME, null);
-        payload.getData().put(MessageKey.FILE_SIZE, 0);
-
-        Message response = new Message(header, payload);
-
-        try {
-            MessageCodec.sendMessage(this.socket.getOutputStream(), response);
-        } catch (IOException e) {
-            log.error("메시지 전송 실패: target={}", this.userId, e);
         }
     }
 }
