@@ -11,6 +11,7 @@ import com.nhnacademy.domain.payload.MessagePayload;
 import com.nhnacademy.exception.MessengerException;
 import com.nhnacademy.exception.NotAuthorizedException;
 import com.nhnacademy.manager.SessionManager;
+import com.nhnacademy.observer.MessageObserver;
 import com.nhnacademy.util.MessageCodec;
 import lombok.Getter;
 import lombok.Setter;
@@ -27,7 +28,7 @@ public class ClientSession implements Runnable {
     private final Socket socket;
     private final Map<MessageType, Command> commandMap;
 
-    private final ClientMessageObserver observer;
+    private final MessageObserver observer;
 
     @Setter
     private String currentRoomId;
