@@ -1,4 +1,4 @@
-package com.nhnacademy.messenger.client.request;
+package com.nhnacademy.request;
 
 import com.nhnacademy.domain.Message;
 
