@@ -68,7 +68,7 @@ public class LoginCommand implements Command {
         Message response = new Message(header, payload);
 
         // 로그인 성공 시 LOGIN-SUCCESS를 클라이언트에게 보냄
-        sendMassage(session, response);
+        session.getObserver().sendMessage(response);
         log.info("로그인 성공: {}", userId);
     }
 
@@ -81,15 +81,7 @@ public class LoginCommand implements Command {
 
         Message response = new Message(header, payload);
 
-        sendMassage(session, response);
+        session.getObserver().sendMessage(response);
         log.warn("로그인 실패: {}", userId);
-    }
-
-    private void sendMassage(ClientSession session, Message response) {
-        try {
-            MessageCodec.sendMessage(session.getSocket().getOutputStream(), response);
-        } catch (IOException e) {
-            log.error("전송 오류", e);
-        }
     }
 }

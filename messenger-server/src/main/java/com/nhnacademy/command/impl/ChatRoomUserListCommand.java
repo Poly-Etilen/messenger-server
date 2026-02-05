@@ -14,6 +14,7 @@ import com.nhnacademy.exception.NotAuthorizedException;
 import com.nhnacademy.exception.RoomNotFoundException;
 import com.nhnacademy.manager.ChatRoomManager;
 import com.nhnacademy.model.ChatRoom;
+import com.nhnacademy.observer.MessageObserver;
 import com.nhnacademy.session.ClientSession;
 import com.nhnacademy.util.MessageCodec;
 import com.nhnacademy.util.PayloadExtractor;
@@ -43,13 +44,13 @@ public class ChatRoomUserListCommand implements Command {
         if (room == null) {
             throw new RoomNotFoundException(roomId);
         }
-        if (!room.getSessions().contains(session)) {
+        if (!room.getSessions().contains(session.getObserver())) {
             throw new NotAuthorizedException();
         }
 
         // 채팅방 유저 리스트 보내기
         List<String> userList = room.getSessions().stream()
-                .map(ClientSession::getUserId)
+                .map(MessageObserver::getUserId)
                 .toList();
         sendSuccess(session, roomId, userList);
     }
@@ -62,10 +63,6 @@ public class ChatRoomUserListCommand implements Command {
         payload.getData().put(MessageKey.USER_LIST, userList);
         Message response = new Message(messageHeader, payload);
 
-        try {
-            MessageCodec.sendMessage(session.getSocket().getOutputStream(), response);
-        } catch (IOException e) {
-            log.error("응답 전송 실패", e);
-        }
+        session.getObserver().sendMessage(response);
     }
 }

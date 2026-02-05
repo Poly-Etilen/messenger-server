@@ -52,13 +52,6 @@ public class ListRoomCommand implements Command {
         MessagePayload payload = new MessagePayload();
         payload.getData().put(MessageKey.ROOM_LIST, roomInfoList);
 
-        Message response = new Message(header, payload);
-
-        try {
-            MessageCodec.sendMessage(session.getSocket().getOutputStream(), response);
-            log.info("방 목록 전송 완료: 요청자 -> {}", session.getUserId());
-        } catch (IOException e) {
-            log.error("방 목록 전송 실패", e);
-        }
+        session.getObserver().sendMessage(new Message(header, payload));
     }
 }

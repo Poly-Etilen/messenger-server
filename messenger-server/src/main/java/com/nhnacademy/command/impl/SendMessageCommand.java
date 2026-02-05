@@ -49,7 +49,7 @@ public class SendMessageCommand implements Command {
         }
 
         // 참여하지 않은 유저가 메시지를 보낸 경우 차단
-        if (!room.getSessions().contains(session)) {
+        if (!room.getSessions().contains(session.getObserver())) {
             log.warn("차단됨: 방에 입장하지 않는 사용자({})가 메시지 전송 시도", session.getUserId());
             return;
         }
@@ -72,10 +72,6 @@ public class SendMessageCommand implements Command {
 
         Message response = new Message(header, payload);
 
-        try {
-            MessageCodec.sendMessage(session.getSocket().getOutputStream(), response);
-        } catch (IOException e) {
-            log.error("메시지 전송 성공 응답 실패", e);
-        }
+        session.getObserver().sendMessage(response);
     }
 }

@@ -58,7 +58,7 @@ public class WhisperMessageCommand implements Command {
         payload.getData().put(MessageKey.SENDER_ID, senderId);
         payload.getData().put("content", content);
 
-        sendMessage(receiver, new Message(header, payload));
+        receiver.getObserver().sendMessage(new Message(header, payload));
     }
 
     // 귓속말을 보내는 내용은 송신자도 보여야 함
@@ -68,14 +68,6 @@ public class WhisperMessageCommand implements Command {
         payload.getData().put(MessageKey.RECEIVER_ID, receiverId);
         payload.getData().put("content", messageContent);
 
-        sendMessage(sender, new Message(header, payload));
-    }
-
-    private void sendMessage(ClientSession session, Message message) {
-        try {
-            MessageCodec.sendMessage(session.getSocket().getOutputStream(), message);
-        } catch (IOException e) {
-            log.error("메시지 전송 실패", e);
-        }
+        sender.getObserver().sendMessage(new Message(header, payload));
     }
 }

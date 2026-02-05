@@ -41,7 +41,7 @@ public class CreateRoomCommand implements Command {
         }
 
         ChatRoom newRoom = chatRoomManager.createRoom(roomName); // 매니저를 호출해서 UUID를 생성하고 ChatRoom을 만들고 저장소에 등록함
-        newRoom.addSession(session);
+        newRoom.addSession(session.getObserver());
         MessageHeader header = new MessageHeader(MessageType.CHAT_ROOM_CREATE_SUCCESS, LocalDateTime.now());
 
         MessagePayload payload = new MessagePayload();
@@ -51,11 +51,6 @@ public class CreateRoomCommand implements Command {
 
         Message response = new Message(header, payload);
 
-        try {
-            // 성공 시 방의 ID를 포함하여 성공 응답을 보냄
-            MessageCodec.sendMessage(session.getSocket().getOutputStream(), response);
-        } catch (IOException e) {
-            log.error("방 생성 응답 전송 실패", e);
-        }
+        session.getObserver().sendMessage(response);
     }
 }

@@ -14,6 +14,7 @@ import com.nhnacademy.exception.AlreadyJoinedException;
 import com.nhnacademy.exception.RoomNotFoundException;
 import com.nhnacademy.manager.ChatRoomManager;
 import com.nhnacademy.model.ChatRoom;
+import com.nhnacademy.observer.MessageObserver;
 import com.nhnacademy.session.ClientSession;
 import com.nhnacademy.util.MessageCodec;
 import com.nhnacademy.util.PayloadExtractor;
@@ -45,11 +46,13 @@ public class JoinRoomCommand implements Command {
         }
 
         // 이미 방에 참여중인지 검증
-        if (room.getSessions().contains(session)) {
+        if (room.getSessions().contains(session.getObserver())) {
             throw new AlreadyJoinedException();
         }
 
-        room.addSession(session); // 방의 참여자 목록에 자신을 추가함
+        room.addSession(session.getObserver()); // 방의 참여자 목록에 자신을 추가함
+        session.setCurrentRoomId(roomId);
+
         sendSuccess(session, room);
 
         // 시스템 메시지를 해당 방의 모든 사람에게 전송
@@ -66,7 +69,7 @@ public class JoinRoomCommand implements Command {
 
         Message message = new Message(header, payload);
 
-        for (ClientSession member : room.getSessions()) {
+        for (MessageObserver member : room.getSessions()) {
             member.sendMessage(message);
         }
     }
@@ -79,15 +82,6 @@ public class JoinRoomCommand implements Command {
         payload.getData().put(MessageKey.ROOM_ID, room.getId());
         payload.getData().put(MessageKey.ROOM_NAME, room.getName());
 
-        Message response = new Message(header, payload);
-        sendMessage(session, response);
-    }
-
-    private void sendMessage(ClientSession session, Message response) {
-        try {
-            MessageCodec.sendMessage(session.getSocket().getOutputStream(), response);
-        } catch (IOException e) {
-            log.error("응답 전송 실패", e);
-        }
+        session.getObserver().sendMessage(new Message(header, payload));
     }
 }
