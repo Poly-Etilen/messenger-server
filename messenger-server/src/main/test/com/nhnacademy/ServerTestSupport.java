@@ -41,36 +41,49 @@ public class ServerTestSupport {
     protected UserRepository userRepository;
     @Mock
     protected MessageQueueManager messageQueueManager;
+    @Mock
+    protected Socket socket;
+
+    // 서버의 응답을 캡처하기 위한 출력 스트림
+    protected ByteArrayOutputStream out;
 
     private AutoCloseable closeable;
 
     @BeforeEach
     public void setup() throws IOException {
         closeable = MockitoAnnotations.openMocks(this);
-        // 서버가 소켓에 무언가 쓰면 실제 소켓 대신 out에 저장됨
+        
+        // 출력 스트림 초기화
+        out = new ByteArrayOutputStream();
+        
+        // 세션 및 소켓 Mock 설정
         when(session.getObserver()).thenReturn(observer);
-        // 세션 생성 및 컨텍스트 설정
+        when(session.getSocket()).thenReturn(socket);
+        when(socket.getOutputStream()).thenReturn(out);
         when(session.getUserId()).thenReturn("testUser");
         when(observer.getUserId()).thenReturn("testUser");
+
+        // ThreadLocal 컨텍스트 설정
         SessionHolder.set(session);
+        
+        // Manager 싱글톤 초기화 (테스트 간 간섭 방지)
+        // 실제 구현에 따라 리셋 로직이 다를 수 있으나, 여기서는 Mock 주입으로 해결
     }
 
     @AfterEach
     void teardown() throws Exception {
-        // 스레드 로컬 비우기
         SessionHolder.clear();
         closeable.close();
     }
 
+    /**
+     * 리플렉션을 사용하여 Command 객체에 Mock 의존성을 주입합니다.
+     */
     protected void injectDependencies(Object command) {
         try {
-            // command 객체의 모든 필드를 순회함
             for (Field field : command.getClass().getDeclaredFields()) {
-                field.setAccessible(true);
-                // @Inject가 붙은 필드만 대상으로 지정
                 if (field.isAnnotationPresent(Inject.class)) {
-                    field.setAccessible(true); // private 필드 접근 가능하게 설정
-
+                    field.setAccessible(true);
                     if (field.getType().isAssignableFrom(ChatRoomManager.class)) {
                         field.set(command, this.chatRoomManager);
                     } else if (field.getType().isAssignableFrom(SessionManager.class)) {
@@ -93,6 +106,15 @@ public class ServerTestSupport {
         if (data != null) {
             payload.getData().putAll(data);
         }
-        return  new Message(header, payload);
+        return new Message(header, payload);
+    }
+    
+    // 테스트용 Mock 세션 생성 도우미
+    protected ClientSession createMockSession(String userId, ByteArrayOutputStream outputStream) throws IOException {
+        Socket mockSocket = Mockito.mock(Socket.class);
+        when(mockSocket.getOutputStream()).thenReturn(outputStream);
+        ClientSession mockSession = new ClientSession(mockSocket, null, null);
+        mockSession.setUserId(userId);
+        return mockSession;
     }
 }
