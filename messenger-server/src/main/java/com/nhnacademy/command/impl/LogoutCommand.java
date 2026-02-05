@@ -14,10 +14,8 @@ import com.nhnacademy.manager.ChatRoomManager;
 import com.nhnacademy.manager.SessionManager;
 import com.nhnacademy.model.ChatRoom;
 import com.nhnacademy.session.ClientSession;
-import com.nhnacademy.util.MessageCodec;
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.IOException;
 import java.time.LocalDateTime;
 
 @Slf4j
@@ -39,7 +37,7 @@ public class LogoutCommand implements Command {
         if (currentRoomId != null) {
             ChatRoom room = chatRoomManager.getRoom(currentRoomId);
             if (room != null) {
-                room.removeSession(session);
+                room.removeSession(session.getObserver());
                 log.info("채팅방 퇴장 처리: room={}, user={}", currentRoomId, userId);
             }
             session.setCurrentRoomId(null);
@@ -56,11 +54,6 @@ public class LogoutCommand implements Command {
 
         Message message = new Message(header, payload);
 
-        try {
-            MessageCodec.sendMessage(session.getSocket().getOutputStream(), message);
-            log.info("로그아웃 성공 처리 완료: {}", userId);
-        } catch (IOException e) {
-            log.error("로그아웃 응답 전송 실패", e);
-        }
+        session.getObserver().sendMessage(message);
     }
 }

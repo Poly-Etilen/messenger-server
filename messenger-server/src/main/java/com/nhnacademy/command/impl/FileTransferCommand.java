@@ -12,6 +12,7 @@ import com.nhnacademy.domain.Message;
 import com.nhnacademy.domain.payload.MessagePayload;
 import com.nhnacademy.manager.ChatRoomManager;
 import com.nhnacademy.model.ChatRoom;
+import com.nhnacademy.observer.MessageObserver;
 import com.nhnacademy.session.ClientSession;
 import com.nhnacademy.util.PayloadExtractor;
 import lombok.extern.slf4j.Slf4j;
@@ -43,19 +44,19 @@ public class FileTransferCommand implements Command {
         // 10MB 이상의 파일인 거부함
         if (estimatedSize > MAX_FILE_SIZE) {
             log.warn("파일 전송 실패: 용량 초과 (User={}, Size={} bytes)", session.getUserId(), estimatedSize);
-            session.sendMessage(createErrorMessage("FILE.SIZE_EXCEEDED", "파일 크기가 10MB를 초과했습니다."));
+            session.getObserver().sendMessage(createErrorMessage("FILE.SIZE_EXCEEDED", "파일 크기가 10MB를 초과했습니다."));
             return;
         }
 
         ChatRoom room = chatRoomManager.getRoom(roomId);
         if (room == null) {
-            session.sendMessage(createErrorMessage("ROOM.NOT_FOUND", "참여 중인 방이 아닙니다."));
+            session.getObserver().sendMessage(createErrorMessage("ROOM.NOT_FOUND", "참여 중인 방이 아닙니다."));
             return;
         }
 
         Message broadcastMessage = createBroadcastMessage(session.getUserId(), roomId, fileName, fileData);
 
-        for (ClientSession member : room.getSessions()) {
+        for (MessageObserver member : room.getSessions()) {
             if (!member.getUserId().equals(session.getUserId())) {
                 member.sendMessage(broadcastMessage);
             }
@@ -84,7 +85,7 @@ public class FileTransferCommand implements Command {
         payload.getData().put(MessageKey.FILE_NAME, fileName);
         payload.getData().put(MessageKey.RESULT, "ok");
 
-        session.sendMessage(new Message(header, payload));
+        session.getObserver().sendMessage(new Message(header, payload));
     }
 
     private Message createErrorMessage(String code, String message) {

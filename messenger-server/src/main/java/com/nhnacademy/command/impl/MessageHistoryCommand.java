@@ -13,11 +13,9 @@ import com.nhnacademy.domain.payload.MessagePayload;
 import com.nhnacademy.manager.ChatRoomManager;
 import com.nhnacademy.model.ChatRoom;
 import com.nhnacademy.session.ClientSession;
-import com.nhnacademy.util.MessageCodec;
 import com.nhnacademy.util.PayloadExtractor;
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -58,11 +56,7 @@ public class MessageHistoryCommand implements Command {
         payload.getData().put(MessageKey.HISTORY, historyData);
         Message response = new Message(messageHeader, payload);
 
-        try {
-            MessageCodec.sendMessage(session.getOutputStream(), response);
-            log.info("메시지 기록 전송 완료: room={}, count={}", roomId, historyData.size());
-        } catch (IOException e) {
-            log.error("메시지 기록 전송 실패", e);
-        }
+        session.getObserver().sendMessage(response);
+        log.info("메시지 기록 전송 완료: room={}, count={}", roomId, historyData.size());
     }
 }

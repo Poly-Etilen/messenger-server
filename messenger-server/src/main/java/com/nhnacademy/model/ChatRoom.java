@@ -1,7 +1,6 @@
 package com.nhnacademy.model;
 
 import com.nhnacademy.observer.MessageObserver;
-import com.nhnacademy.session.ClientSession;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -12,7 +11,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 @Getter
 @RequiredArgsConstructor
@@ -20,15 +18,15 @@ public class ChatRoom {
     private final String id; // 방 고유 ID
     private final String name; // 방 이름
 
-    private final Set<ClientSession> sessions = ConcurrentHashMap.newKeySet();
+    private final Set<MessageObserver> sessions = ConcurrentHashMap.newKeySet();
     private final List<StoredMessage> messageLog = Collections.synchronizedList(new ArrayList<>());
 
-    public void addSession(ClientSession session) {
-        sessions.add(session);
+    public void addSession(MessageObserver observer) {
+        sessions.add(observer);
     }
 
-    public void removeSession(ClientSession session) {
-        sessions.remove(session);
+    public void removeSession(MessageObserver observer) {
+        sessions.remove(observer);
     }
 
     public void addMessage(String senderId, String message) {
