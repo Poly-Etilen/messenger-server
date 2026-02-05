@@ -9,4 +9,7 @@ public interface MessageObserver {
     void sendMessage(Message message);
 
     String getUserId();
+
+    void setUserId(String userId);
+    void sendErrorMessage(String message);
 }
