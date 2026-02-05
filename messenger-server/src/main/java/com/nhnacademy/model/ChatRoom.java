@@ -12,7 +12,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 @Getter
 @RequiredArgsConstructor
@@ -36,8 +35,11 @@ public class ChatRoom {
     }
 
     public void notifyObservers(BroadcastMessage message) {
-        for (MessageObserver observer : sessions) {
-            observer.onMessage(message);
+        for (ClientSession session : sessions) {
+            MessageObserver observer = session.getObserver();
+            if (observer != null) {
+                observer.onMessage(message);
+            }
         }
     }
 

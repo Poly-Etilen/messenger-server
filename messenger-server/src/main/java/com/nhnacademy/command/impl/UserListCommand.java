@@ -10,7 +10,6 @@ import com.nhnacademy.domain.Header.MessageHeader;
 import com.nhnacademy.domain.Header.MessageType;
 import com.nhnacademy.domain.Message;
 import com.nhnacademy.domain.payload.MessagePayload;
-import com.nhnacademy.manager.ChatRoomManager;
 import com.nhnacademy.manager.SessionManager;
 import com.nhnacademy.repository.UserRepository;
 import com.nhnacademy.session.ClientSession;
