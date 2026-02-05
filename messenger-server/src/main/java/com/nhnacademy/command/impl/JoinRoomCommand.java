@@ -16,11 +16,9 @@ import com.nhnacademy.manager.ChatRoomManager;
 import com.nhnacademy.model.ChatRoom;
 import com.nhnacademy.observer.MessageObserver;
 import com.nhnacademy.session.ClientSession;
-import com.nhnacademy.util.MessageCodec;
 import com.nhnacademy.util.PayloadExtractor;
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.IOException;
 import java.time.LocalDateTime;
 
 @Slf4j

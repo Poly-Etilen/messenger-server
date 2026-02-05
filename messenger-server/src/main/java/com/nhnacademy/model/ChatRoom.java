@@ -1,7 +1,6 @@
 package com.nhnacademy.model;
 
 import com.nhnacademy.observer.MessageObserver;
-import com.nhnacademy.session.ClientSession;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

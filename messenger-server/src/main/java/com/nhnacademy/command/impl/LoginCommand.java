@@ -13,11 +13,9 @@ import com.nhnacademy.exception.DuplicateLoginException;
 import com.nhnacademy.manager.SessionManager;
 import com.nhnacademy.repository.UserRepository;
 import com.nhnacademy.session.ClientSession;
-import com.nhnacademy.util.MessageCodec;
 import com.nhnacademy.util.PayloadExtractor;
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.Map;
 
