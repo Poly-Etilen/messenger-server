@@ -8,6 +8,7 @@ import com.nhnacademy.domain.payload.MessagePayload;
 import com.nhnacademy.model.BroadcastMessage;
 import com.nhnacademy.observer.MessageObserver;
 import com.nhnacademy.util.MessageCodec;
+import com.nhnacademy.util.NioMessageCodec;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -15,13 +16,15 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.net.Socket;
+import java.nio.ByteBuffer;
+import java.nio.channels.SocketChannel;
 import java.time.LocalDateTime;
 
 @Slf4j
 @RequiredArgsConstructor
 public class ClientMessageObserver implements MessageObserver {
 
-    private final Socket socket;
+    private final SocketChannel socketChannel;
 
     @Getter
     @Setter
@@ -44,9 +47,15 @@ public class ClientMessageObserver implements MessageObserver {
     }
 
     public void sendMessage(Message message) {
-        if (socket.isClosed()) return;
+        if (!socketChannel.isOpen()) return;
         try {
-            MessageCodec.sendMessage(socket.getOutputStream(), message);
+            ByteBuffer buffer = NioMessageCodec.encode(message);
+
+            synchronized (socketChannel) {
+                while (buffer.hasRemaining()) {
+                    socketChannel.write(buffer);
+                }
+            }
         } catch (IOException e) {
             log.error("메시지 전송 실패: target={}, error={}", userId, e.getMessage());
         }

@@ -13,35 +13,97 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.channels.SelectionKey;
+import java.nio.channels.Selector;
+import java.nio.channels.ServerSocketChannel;
+import java.nio.channels.SocketChannel;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 @Slf4j
-@AllArgsConstructor
 public class MessengerServer {
     private final int port;
     private final Map<MessageType, Command> commandMap;
+    private final ExecutorService workerThreadPool;
+    private Selector selector;
+
+    public MessengerServer(int port, Map<MessageType, Command> commandMap) {
+        this.port = port;
+        this.commandMap = commandMap;
+        this.workerThreadPool = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() * 2);
+    }
 
     public void start() {
-        try (ServerSocket socket = new ServerSocket(port)){
+        try {
+            selector = Selector.open();
+            ServerSocketChannel serverSocketChannel = ServerSocketChannel.open();
+            serverSocketChannel.bind(new InetSocketAddress(port));
+            serverSocketChannel.configureBlocking(false);
+            serverSocketChannel.register(selector, SelectionKey.OP_ACCEPT);
+
             log.info("메신저 서버가 포트 {}에서 시작되었습니다.", port);
 
             while (!Thread.currentThread().isInterrupted()) {
-                try {
-                    // 소켓을 열고 새로운 클라이언트의 연결을 기다림
-                    Socket clientSocket = socket.accept();
-                    log.info("새로운 클라이언트 접속: {}", clientSocket.getInetAddress());
-                    // 새로운 클라이언트가 접속시 객체 생성과 스레드 할당
-                    ClientSession session = new ClientSession(clientSocket, null, commandMap);
-                    Thread sessionThread = new Thread(session);
-                    sessionThread.start();
-                } catch (IOException e) {
-                    log.error("클라이언트 연결 수락 중 오류 발생", e);
+                selector.select();
+                Iterator<SelectionKey> keys = selector.selectedKeys().iterator();
+                while (keys.hasNext()) {
+                    SelectionKey key = keys.next();
+                    keys.remove();
+                    if (!key.isValid()) continue;
+
+                    if (key.isAcceptable()) {
+                        handleAccept(key);
+                    } else if (key.isReadable()) {
+                        handleRead(key);
+                    }
                 }
             }
         } catch (IOException e) {
-            log.error("서버 시작 실패: 포트 {}를 사용할 수 없습니다.", port, e);
+            log.error("서버 실행 중 오류 발생", e);
+        } finally {
+            stop();
+        }
+    }
+
+    private void handleAccept(SelectionKey key) {
+        try {
+            ServerSocketChannel serverChannel = (ServerSocketChannel) key.channel();
+            SocketChannel clientChannel = serverChannel.accept();
+            clientChannel.configureBlocking(false);
+
+            log.info("새로운 클라이언트 접속: {}", clientChannel.getRemoteAddress());
+
+            ClientSession session = new ClientSession(clientChannel, commandMap, workerThreadPool);
+            clientChannel.register(selector, SelectionKey.OP_READ, session);
+        } catch (IOException e) {
+            log.error("클라이언트 연결 수락 실패", e);
+        }
+    }
+
+    private void handleRead(SelectionKey key) {
+        ClientSession session = (ClientSession) key.attachment();
+        try {
+            session.read();
+        } catch (IOException e) {
+            log.info("클라이언트 연결 종료 감지: {}", session.getUserId());
+            session.close();
+            key.cancel();
+        }
+    }
+
+    private void stop() {
+        if (workerThreadPool != null) {
+            workerThreadPool.shutdown();
+        }
+        try {
+            if (selector != null) selector.close();
+        } catch (IOException e) {
+            log.error("Selector 종료 오류", e);
         }
     }
 

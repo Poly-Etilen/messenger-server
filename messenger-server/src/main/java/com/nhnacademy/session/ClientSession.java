@@ -1,5 +1,7 @@
 package com.nhnacademy.session;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.nhnacademy.annotation.LoginRequired;
 import com.nhnacademy.command.Command;
 import com.nhnacademy.constant.MessageKey;
@@ -13,31 +15,39 @@ import com.nhnacademy.exception.NotAuthorizedException;
 import com.nhnacademy.manager.SessionManager;
 import com.nhnacademy.observer.MessageObserver;
 import com.nhnacademy.util.MessageCodec;
+import com.nhnacademy.util.NioMessageCodec;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.net.Socket;
+import java.nio.ByteBuffer;
+import java.nio.channels.SocketChannel;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
 
 @Getter
 @Slf4j
-public class ClientSession implements Runnable {
-    private final Socket socket;
+public class ClientSession {
+    private final SocketChannel socketChannel;
     private final Map<MessageType, Command> commandMap;
-
     private final MessageObserver observer;
+    private final ExecutorService workerThreadPool;
+
+    private final ByteBuffer readBuffer = ByteBuffer.allocate(8192); // 8KB 버퍼
 
     @Setter
     private String currentRoomId;
 
-    public ClientSession(Socket socket, String userId, Map<MessageType, Command> commandMap) {
-        this.socket = socket;
+    public ClientSession(SocketChannel socketChannel, Map<MessageType, Command> commandMap, ExecutorService workerThreadPool) {
+        this.socketChannel = socketChannel;
         this.commandMap = commandMap;
-        this.observer = new ClientMessageObserver(socket);
-        setUserId(userId);
+        this.workerThreadPool = workerThreadPool;
+        this.observer = new ClientMessageObserver(socketChannel);
     }
 
     public void setUserId(String userId) {
@@ -48,44 +58,58 @@ public class ClientSession implements Runnable {
         return this.observer.getUserId();
     }
 
-    @Override
-    public void run() {
-        SessionHolder.set(this);
+    public void read() throws IOException {
+        int readBytes = socketChannel.read(readBuffer);
+        if (readBytes == -1) {
+            throw new IOException("End of stream");
+        }
+        if (readBytes > 0) {
+            List<Message> messages = NioMessageCodec.decode(readBuffer);
+
+            for (Message message : messages) {
+                workerThreadPool.submit(() -> processMessage(message));
+            }
+        }
+    }
+
+    public synchronized void sendMessage(Message message) {
+        if (!socketChannel.isOpen()) return;
         try {
-            while (socket.isConnected() && !socket.isClosed()) {
-                // 소켓에서 메시지를 읽어옴
-                Message message = MessageCodec.readMessage(socket.getInputStream());
-
-                if (message == null) break;
-                // 메시지 헤더의 MessageType을 확인
-                MessageType type = message.getHeader().getMessageType();
-                log.debug("[{}] 수신: {}", getUserId(), type);
-
-                //commandMap에서 해당 타입에 맞는 객체를 찾아옴
-                Command command = commandMap.get(type);
-                if (command != null) {
-                    try {
-                        // @LoginRequired가 있는지 확인함
-                        checkPermission(command);
-                        command.execute(message);
-                    } catch (MessengerException e) {
-                        // 중복 로그인, 방 없음 등 비즈니스 로직 상의 오류 분류
-                        handleMessengerException(e);
-                    } catch (Exception e) {
-                        log.error("알 수 없는 서버 에러", e);
-                        sendError("서버 내부 오류가 발생했습니다.");
-                    }
-                } else {
-                    log.warn("알 수 없는 명령어: {}", type);
-                }
+            ByteBuffer buffer = NioMessageCodec.encode(message);
+            while (buffer.hasRemaining()) {
+                socketChannel.write(buffer);
             }
         } catch (IOException e) {
-            log.info("연결 종료: {}", getUserId());
+            log.error("메시지 전송 실패", e);
+            close();
+        }
+    }
+
+    private void processMessage(Message message) {
+        SessionHolder.set(this);
+        try {
+            MessageType type = message.getHeader().getMessageType();
+            log.debug("[{}] 요청 수신: {}", getUserId(), type);
+
+            Command command = commandMap.get(type);
+            if (command != null) {
+                checkPermission(command);
+                command.execute(message);
+            } else {
+                log.warn("알 수 없는 명령어: {}", type);
+            }
+        } catch (MessengerException e) {
+            handleMessengerException(e);
+        } catch (Exception e) {
+            log.error("명령어 처리 중 오류 발생", e);
+            sendError("서버 내부 오류가 발생했습니다.");
         } finally {
             SessionHolder.clear();
-            disconnect();
         }
+    }
 
+    public void close() {
+        disconnect();
     }
 
     private void disconnect() {
@@ -93,8 +117,8 @@ public class ClientSession implements Runnable {
             SessionManager.getInstance().removeSession(getUserId());
         }
         try {
-            if(socket != null && !socket.isClosed()) {
-                socket.close();
+            if(socketChannel != null && socketChannel.isOpen()) {
+                socketChannel.close();
             }
         } catch (IOException e) {
             log.error("소켓 종료 에러", e);
@@ -118,7 +142,7 @@ public class ClientSession implements Runnable {
         payload.getData().put(MessageKey.RESULT, "fail");
         payload.getData().put(MessageKey.REASON, e.getMessage());
 
-        observer.sendMessage(new Message(header, payload));
+        sendMessage(new Message(header, payload));
     }
 
     private void sendError(String message) {
@@ -126,13 +150,5 @@ public class ClientSession implements Runnable {
         MessagePayload payload = new MessagePayload();
         payload.getData().put(MessageKey.MESSAGE, message);
         sendMessage(new Message(header, payload));
-    }
-
-    public void sendMessage(Message message) {
-        try {
-            MessageCodec.sendMessage(socket.getOutputStream(), message);
-        } catch (IOException e) {
-            log.error("응답 전송 실패", e);
-        }
     }
 }
