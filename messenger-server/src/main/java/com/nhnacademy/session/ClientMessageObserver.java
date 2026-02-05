@@ -7,7 +7,6 @@ import com.nhnacademy.domain.Message;
 import com.nhnacademy.domain.payload.MessagePayload;
 import com.nhnacademy.model.BroadcastMessage;
 import com.nhnacademy.observer.MessageObserver;
-import com.nhnacademy.util.MessageCodec;
 import com.nhnacademy.util.NioMessageCodec;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -15,7 +14,6 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
-import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.time.LocalDateTime;

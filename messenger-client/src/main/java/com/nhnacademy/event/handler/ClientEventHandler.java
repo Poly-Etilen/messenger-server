@@ -2,12 +2,12 @@ package com.nhnacademy.event.handler;
 
 import com.nhnacademy.domain.Header.MessageType;
 import com.nhnacademy.domain.Message;
+import com.nhnacademy.event.listener.ClientEventListener;
 import com.nhnacademy.messenger.client.ClientConnection;
+import com.nhnacademy.observer.MessageObserver;
 import com.nhnacademy.observer.impl.AuthObserver;
 import com.nhnacademy.observer.impl.ChatObserver;
 import com.nhnacademy.observer.impl.RoomObserver;
-import com.nhnacademy.event.listener.ClientEventListener;
-import com.nhnacademy.observer.MessageObserver;
 import com.nhnacademy.request.Request;
 import com.nhnacademy.request.RequestFactory;
 import lombok.Getter;

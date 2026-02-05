@@ -4,7 +4,6 @@ import com.nhnacademy.command.impl.LoginCommand;
 import com.nhnacademy.command.impl.LogoutCommand;
 import com.nhnacademy.domain.Header.MessageType;
 import com.nhnacademy.domain.Message;
-import com.nhnacademy.manager.ChatRoomManager;
 import com.nhnacademy.model.ChatRoom;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;

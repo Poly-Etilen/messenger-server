@@ -2,8 +2,8 @@ package com.nhnacademy.observer.impl;
 
 import com.nhnacademy.domain.Header.MessageType;
 import com.nhnacademy.event.handler.ClientEventHandler;
-import com.nhnacademy.observer.MessageObserver;
 import com.nhnacademy.event.listener.ClientEventListener;
+import com.nhnacademy.observer.MessageObserver;
 import com.nhnacademy.request.RequestFactory;
 
 import java.util.List;

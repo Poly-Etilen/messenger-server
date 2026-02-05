@@ -9,13 +9,10 @@ import com.nhnacademy.domain.Header.MessageType;
 import com.nhnacademy.manager.MessageQueueManager;
 import com.nhnacademy.module.MessengerModule;
 import com.nhnacademy.session.ClientSession;
-import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.net.ServerSocket;
-import java.net.Socket;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
