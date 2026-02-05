@@ -18,7 +18,6 @@ public interface ClientEventListener {
 
 
 
-
     void writeMessage(String message);
 
     //화면 동기화

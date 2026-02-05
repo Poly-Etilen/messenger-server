@@ -59,9 +59,8 @@ public class ClientEventHandler {
         sendRequest(RequestFactory.roomJoinRequest(selectedRoomId));
     }
 
-    public void createRoomClicked(Stage createStage, String roomName) { //방 생성 요청
+    public void createRoomClicked(String roomName) { //방 생성 요청
         sendRequest(RequestFactory.createRoomRequest(roomName));
-        createStage.close();
 
     }
 

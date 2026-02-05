@@ -222,11 +222,13 @@ public class ClientGUI extends Application implements View, ClientEventListener 
 
         roomNameField.setOnAction(e -> {
             this.roomName = roomNameField.getText();
-            eventHandler.createRoomClicked(createStage, roomName);
+            eventHandler.createRoomClicked(roomName);
+            createStage.close();
         });
         okBtn.setOnAction(e -> {
             this.roomName = roomNameField.getText();
-            eventHandler.createRoomClicked(createStage, roomName);
+            eventHandler.createRoomClicked(roomName);
+            createStage.close();
         });
 
         layout.getChildren().addAll(label, roomNameField, okBtn);
