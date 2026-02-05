@@ -9,11 +9,14 @@ import com.nhnacademy.domain.payload.MessagePayload;
 import com.nhnacademy.manager.ChatRoomManager;
 import com.nhnacademy.manager.MessageQueueManager;
 import com.nhnacademy.manager.SessionManager;
+import com.nhnacademy.observer.MessageObserver;
 import com.nhnacademy.repository.UserRepository;
 import com.nhnacademy.session.ClientSession;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -26,32 +29,37 @@ import static org.mockito.Mockito.when;
 
 public class ServerTestSupport {
 
+    @Mock
     protected ClientSession session;
-    protected ByteArrayOutputStream out;
-    protected Socket socket;
+    @Mock
+    protected MessageObserver observer;
+    @Mock
+    protected ChatRoomManager chatRoomManager;
+    @Mock
+    protected SessionManager sessionManager;
+    @Mock
     protected UserRepository userRepository;
+    @Mock
+    protected MessageQueueManager messageQueueManager;
+
+    private AutoCloseable closeable;
 
     @BeforeEach
     public void setup() throws IOException {
-        // 가짜 소켓 생성
-        socket = Mockito.mock(Socket.class);
+        closeable = MockitoAnnotations.openMocks(this);
         // 서버가 소켓에 무언가 쓰면 실제 소켓 대신 out에 저장됨
-        out = new ByteArrayOutputStream();
-        when(socket.getOutputStream()).thenReturn(out);
+        when(session.getObserver()).thenReturn(observer);
         // 세션 생성 및 컨텍스트 설정
-        session = new ClientSession(socket, null, null);
+        when(session.getUserId()).thenReturn("testUser");
+        when(observer.getUserId()).thenReturn("testUser");
         SessionHolder.set(session);
-        userRepository = new UserRepository();
     }
 
     @AfterEach
-    void teardown() {
+    void teardown() throws Exception {
         // 스레드 로컬 비우기
         SessionHolder.clear();
-
-        // 싱글톤 객체 초기화
-        resetSingleton(ChatRoomManager.getInstance(), "roomMaps");
-        resetSingleton(SessionManager.getInstance(), "sessionMap");
+        closeable.close();
     }
 
     protected void injectDependencies(Object command) {
@@ -64,30 +72,18 @@ public class ServerTestSupport {
                     field.setAccessible(true); // private 필드 접근 가능하게 설정
 
                     if (field.getType().isAssignableFrom(ChatRoomManager.class)) {
-                        field.set(command, ChatRoomManager.getInstance());
+                        field.set(command, this.chatRoomManager);
                     } else if (field.getType().isAssignableFrom(SessionManager.class)) {
-                        field.set(command, SessionManager.getInstance());
+                        field.set(command, this.sessionManager);
                     } else if (field.getType().isAssignableFrom(UserRepository.class)) {
-                        field.set(command, userRepository);
+                        field.set(command, this.userRepository);
                     } else if (field.getType().isAssignableFrom(MessageQueueManager.class)) {
-                        field.set(command, MessageQueueManager.getInstance());
-                        MessageQueueManager.getInstance().start();
+                        field.set(command, this.messageQueueManager);
                     }
                 }
             }
         } catch (IllegalAccessException e) {
             throw new RuntimeException("테스트 의존성 주입 실패: " + command.getClass().getSimpleName(), e);
-        }
-    }
-
-    protected void resetSingleton(Object instance, String fieldName) {
-        try {
-            Field field = instance.getClass().getDeclaredField(fieldName);
-            field.setAccessible(true);
-            // 맵을 꺼내서 clear() 호출해서 데이터를 싹 비움
-            ((Map<?,?>) field.get(instance)).clear();
-        } catch (Exception e) {
-            throw new RuntimeException("싱글톤 초기화 실패: " + fieldName, e);
         }
     }
 

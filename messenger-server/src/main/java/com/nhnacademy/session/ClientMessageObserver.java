@@ -52,7 +52,8 @@ public class ClientMessageObserver implements MessageObserver {
         }
     }
 
-    public void sendErrorMessage(Message message) {
+    @Override
+    public void sendErrorMessage(String message) {
         MessageHeader header = new MessageHeader(MessageType.ERROR, LocalDateTime.now());
         MessagePayload payload = new MessagePayload();
         payload.getData().put(MessageKey.MESSAGE, message);
