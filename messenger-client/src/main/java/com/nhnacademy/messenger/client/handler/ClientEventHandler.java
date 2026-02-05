@@ -7,6 +7,7 @@ import com.nhnacademy.messenger.client.ClientConnection;
 import com.nhnacademy.messenger.client.request.Request;
 import com.nhnacademy.messenger.client.request.RequestFactory;
 import com.nhnacademy.ui.form.impl.ClientGUI;
+import javafx.application.Platform;
 import javafx.stage.Stage;
 import lombok.extern.slf4j.Slf4j;
 
@@ -28,11 +29,18 @@ public class ClientEventHandler {
     public ClientEventHandler(ClientGUI view) {
         this.view = view;
         try {
-            this.connection = new ClientConnection("localhost", 8000,this);
+            this.connection = new ClientConnection("localhost", 8000, this);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            log.error("서버 연결 실패", e);
+            Platform.runLater(() ->
+                    view.showError("연결 실패", "서버에 연결할 수 없습니다.\n서버가 실행 중인지 확인해주세요.")
+            );
+            throw new RuntimeException("서버 연결 실패", e);
         }
-        connection.startListening();
+    }
+
+    public void stopConnection(){
+        connection.stop();
     }
 
 
@@ -317,6 +325,7 @@ public class ClientEventHandler {
         view.writeMessage(content); // 채팅메세지 UI화면에 추가
 
     }
+
 
 
 

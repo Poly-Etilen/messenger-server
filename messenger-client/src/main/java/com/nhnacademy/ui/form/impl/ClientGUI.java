@@ -57,6 +57,7 @@ public class ClientGUI extends Application implements View {
         primaryStage.setOnCloseRequest(event -> {
             log.info("창이 닫혔습니다. 로그아웃 합니다");
             eventHandler.onLogoutClicked();
+            eventHandler.stopConnection();
 
         });
         mainView();
